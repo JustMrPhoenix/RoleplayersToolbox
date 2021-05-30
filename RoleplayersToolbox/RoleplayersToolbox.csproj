@@ -1,0 +1,59 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>net48</TargetFramework>
+        <Version>1.0.0</Version>
+        <LangVersion>latest</LangVersion>
+        <Nullable>enable</Nullable>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <Configurations>Release Official;Release Illegal;Debug Official;Debug Illegal</Configurations>
+        <Platforms>AnyCPU</Platforms>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release Official' ">
+        <DefineConstants>TRACE;RELEASE;</DefineConstants>
+        <Optimize>true</Optimize>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release Illegal' ">
+        <DefineConstants>TRACE;RELEASE;ILLEGAL</DefineConstants>
+        <Optimize>true</Optimize>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug Official' ">
+        <DefineConstants>TRACE;DEBUG;</DefineConstants>
+        <DebugSymbols>true</DebugSymbols>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug Illegal' ">
+        <DefineConstants>TRACE;DEBUG;ILLEGAL;</DefineConstants>
+        <DebugSymbols>true</DebugSymbols>
+    </PropertyGroup>
+    <ItemGroup>
+        <Reference Include="Dalamud">
+            <HintPath>$(AppData)\XIVLauncher\addon\Hooks\dev\Dalamud.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="FFXIVClientStructs">
+            <HintPath>$(AppData)\XIVLauncher\addon\Hooks\dev\FFXIVClientStructs.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="ImGui.NET">
+            <HintPath>$(AppData)\XIVLauncher\addon\Hooks\dev\ImGui.NET.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="ImGuiScene">
+            <HintPath>$(AppData)\XIVLauncher\addon\Hooks\dev\ImGuiScene.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="Lumina">
+            <HintPath>$(AppData)\XIVLauncher\addon\Hooks\dev\Lumina.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="Lumina.Excel">
+            <HintPath>$(AppData)\XIVLauncher\addon\Hooks\dev\Lumina.Excel.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+    </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="F23.StringSimilarity" Version="4.0.0"/>
+        <PackageReference Include="Fody" Version="6.5.1" PrivateAssets="all"/>
+        <PackageReference Include="ILMerge.Fody" Version="1.16.0" PrivateAssets="all"/>
+        <PackageReference Include="XivCommon" Version="1.6.1"/>
+    </ItemGroup>
+</Project>

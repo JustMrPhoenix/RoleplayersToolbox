@@ -51,9 +51,13 @@ namespace RoleplayersToolbox.Tools.Housing {
 
         // Updated: 5.55
         // 48 89 5C 24 ?? 48 89 6C 24 ?? 48 89 74 24 ?? 57 41 56 41 57 48 83 EC 20 49 8B 00
-        private unsafe ushort CurrentWard {
+        private unsafe ushort? CurrentWard {
             get {
                 var objPtr = Util.FollowPointerChain(this._housingPointer, new[] { 0, 8 });
+                if (objPtr == IntPtr.Zero) {
+                    return null;
+                }
+
                 return (ushort) (*(ushort*) (objPtr + 0x96a2) + 1);
             }
         }

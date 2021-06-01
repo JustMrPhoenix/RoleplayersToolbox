@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <TargetFramework>net48</TargetFramework>
-        <Version>1.0.0</Version>
+        <Version>0.1.0</Version>
         <LangVersion>latest</LangVersion>
         <Nullable>enable</Nullable>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -51,6 +51,7 @@
         </Reference>
     </ItemGroup>
     <ItemGroup>
+        <PackageReference Include="DalamudPackager" Version="1.2.1"/>
         <PackageReference Include="F23.StringSimilarity" Version="4.0.0"/>
         <PackageReference Include="Fody" Version="6.5.1" PrivateAssets="all"/>
         <PackageReference Include="ILMerge.Fody" Version="1.16.0" PrivateAssets="all"/>

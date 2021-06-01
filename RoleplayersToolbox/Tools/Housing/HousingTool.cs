@@ -79,7 +79,9 @@ namespace RoleplayersToolbox.Tools.Housing {
 
             this.Plugin.Common.Functions.ContextMenu.OpenContextMenu += this.OnContextMenu;
             this.Plugin.Interface.Framework.OnUpdateEvent += this.OnFramework;
-            this.Plugin.Interface.CommandManager.AddHandler("/route", new CommandInfo(this.OnCommand));
+            this.Plugin.Interface.CommandManager.AddHandler("/route", new CommandInfo(this.OnCommand) {
+                HelpMessage = "Extract housing information from the given text and open the routing window",
+            });
         }
 
         public void Dispose() {

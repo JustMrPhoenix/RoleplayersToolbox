@@ -32,7 +32,9 @@ namespace RoleplayersToolbox.Tools.Illegal.Emote {
         internal EmoteTool(Plugin plugin) {
             this.Plugin = plugin;
 
-            this.Plugin.Interface.CommandManager.AddHandler("/emoteid", new CommandInfo(this.EmoteIdCommand));
+            this.Plugin.Interface.CommandManager.AddHandler("/emoteid", new CommandInfo(this.EmoteIdCommand) {
+                HelpMessage = "Run the emote with the given ID if it is unlocked",
+            });
 
             if (this.Plugin.Interface.TargetModuleScanner.TryScanText(Signatures.SetActionOnHotbar, out var setPtr)) {
                 this.SetActionOnHotbarHook = new Hook<SetActionOnHotbarDelegate>(setPtr, new SetActionOnHotbarDelegate(this.SetActionOnHotbarDetour));

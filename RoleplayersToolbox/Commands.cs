@@ -8,7 +8,9 @@ namespace RoleplayersToolbox {
         internal Commands(Plugin plugin) {
             this.Plugin = plugin;
 
-            this.Plugin.Interface.CommandManager.AddHandler("/rptools", new CommandInfo(this.OnCommand));
+            this.Plugin.Interface.CommandManager.AddHandler("/rptools", new CommandInfo(this.OnCommand) {
+                HelpMessage = "Open The Roleplayer's Toolbox",
+            });
         }
 
         public void Dispose() {

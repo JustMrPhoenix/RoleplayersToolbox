@@ -32,8 +32,6 @@ namespace RoleplayersToolbox {
             this.Config = this.Interface.GetPluginConfig() as Configuration ?? new Configuration();
             this.Common = new XivCommonBase(pluginInterface, Hooks.ContextMenu | Hooks.PartyFinderListings);
 
-            this.Ui = new PluginUi(this);
-
             this.Tools.Add(new HousingTool(this));
             this.Tools.Add(new TargetingTool(this));
 
@@ -41,6 +39,8 @@ namespace RoleplayersToolbox {
             this.Tools.Add(new EmoteTool(this));
             this.Tools.Add(new EmoteSnapTool(this));
             #endif
+
+            this.Ui = new PluginUi(this);
 
             this.Commands = new Commands(this);
 

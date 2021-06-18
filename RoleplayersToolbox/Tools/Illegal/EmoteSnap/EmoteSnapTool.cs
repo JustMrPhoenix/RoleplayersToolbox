@@ -1,6 +1,7 @@
 ﻿#if ILLEGAL
 
 using System;
+using Dalamud.Game.Command;
 using Dalamud.Hooking;
 using ImGuiNET;
 
@@ -26,9 +27,14 @@ namespace RoleplayersToolbox.Tools.Illegal.EmoteSnap {
                 this.ShouldSnapHook = new Hook<ShouldSnapDelegate>(snapPtr, new ShouldSnapDelegate(this.ShouldSnapDetour));
                 this.ShouldSnapHook.Enable();
             }
+
+            this.Plugin.Interface.CommandManager.AddHandler("/dozesnap", new CommandInfo(this.OnCommand) {
+                HelpMessage = "Toggle snapping for the /doze emote",
+            });
         }
 
         public void Dispose() {
+            this.Plugin.Interface.CommandManager.RemoveHandler("/dozesnap");
             this.ShouldSnapHook?.Dispose();
         }
 
@@ -36,12 +42,20 @@ namespace RoleplayersToolbox.Tools.Illegal.EmoteSnap {
             anyChanged |= ImGui.Checkbox("Disable /doze snap", ref this.Config.DisableDozeSnap);
 
             ImGui.TextUnformatted("Check this box to prevent /doze and the sleep emote from snapping. In order to use the sleep emote, you need to have it on your bar.");
+            ImGui.TextUnformatted("The /dozesnap command can be used to toggle this.");
         }
 
         private byte ShouldSnapDetour(IntPtr a1, IntPtr a2) {
             return this.Config.DisableDozeSnap
                 ? (byte) 0
                 : this.ShouldSnapHook!.Original(a1, a2);
+        }
+
+        private void OnCommand(string command, string arguments) {
+            this.Config.DisableDozeSnap ^= true;
+
+            var status = this.Config.DisableDozeSnap ? "off" : "on";
+            this.Plugin.Interface.Framework.Gui.Chat.Print($"/doze snap toggled {status}.");
         }
     }
 }

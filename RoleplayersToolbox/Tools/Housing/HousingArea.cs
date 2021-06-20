@@ -30,5 +30,14 @@ namespace RoleplayersToolbox.Tools.Housing {
         public static TerritoryType CityState(this HousingArea area, DataManager data) {
             return data.GetExcelSheet<TerritoryType>().GetRow(area.CityStateTerritoryType());
         }
+
+        public static bool CanWorldTravel(this HousingArea area) {
+            return area switch {
+                HousingArea.Mist => true,
+                HousingArea.LavenderBeds => true,
+                HousingArea.Goblet => true,
+                _ => false,
+            };
+        }
     }
 }

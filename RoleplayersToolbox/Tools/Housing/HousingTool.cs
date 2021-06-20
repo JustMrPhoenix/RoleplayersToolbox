@@ -172,9 +172,14 @@ namespace RoleplayersToolbox.Tools.Housing {
             if (this.Destination?.Area != null) {
                 ImGui.SameLine();
 
-                var name = this.Destination.Area.Value.CityState(this.Plugin.Interface.Data).PlaceName.Value.Name;
+                var destArea = this.Destination.Area.Value;
+                if (!destArea.CanWorldTravel() && this.Destination?.World != null && this.Destination?.World != this.Plugin.Interface.ClientState.LocalPlayer?.CurrentWorld?.GameData) {
+                    destArea = HousingArea.Mist;
+                }
+
+                var name = destArea.CityState(this.Plugin.Interface.Data).PlaceName.Value.Name;
                 if (ImGui.Button($"Teleport to {name}")) {
-                    this.Teleport.TeleportToHousingArea(this.Destination.Area.Value);
+                    this.Teleport.TeleportToHousingArea(destArea);
                 }
             }
 

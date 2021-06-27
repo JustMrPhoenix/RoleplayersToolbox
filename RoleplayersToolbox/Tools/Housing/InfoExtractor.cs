@@ -31,8 +31,8 @@ namespace RoleplayersToolbox.Tools.Housing {
 
         private static readonly JaroWinkler JaroWinkler = new();
 
-        private static readonly Regex CombinedWardPlot = new(@"w(?:ard)?\W{0,2}(\d{1,2})\W{0,2}p(?:lot)?\W{0,2}(\d{1,2})", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-        private static readonly Regex WardOnly = new(@"w(?:ard)?\W{0,2}(\d{1,2})", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        private static readonly Regex CombinedWardPlot = new(@"(?<!sf)w(?:ard)?\W{0,2}(\d{1,2})\W{0,2}p(?:lot)?\W{0,2}(\d{1,2})", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        private static readonly Regex WardOnly = new(@"(?<!sf)w(?:ard)?\W{0,2}(\d{1,2})", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         private static readonly Regex PlotOnly = new(@"p(?:lot)?\W{0,2}(\d{1,2})", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         private static readonly Regex DesperationCombined = new(@"(\d{1,2})\W{1,2}(\d{1,2})", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 

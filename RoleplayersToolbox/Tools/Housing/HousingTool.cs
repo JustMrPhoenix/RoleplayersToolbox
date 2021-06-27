@@ -31,12 +31,13 @@ namespace RoleplayersToolbox.Tools.Housing {
         public override string Name => "Housing";
         private Plugin Plugin { get; }
         private HousingConfig Config { get; }
-        private HousingInfo Info { get; }
+        internal HousingInfo Info { get; }
+        private BookmarksUi BookmarksUi { get; }
         private Teleport Teleport { get; }
 
         private DestinationInfo? _destination;
 
-        private DestinationInfo? Destination {
+        internal DestinationInfo? Destination {
             get => this._destination;
             set {
                 this._destination = value;
@@ -69,6 +70,7 @@ namespace RoleplayersToolbox.Tools.Housing {
             this.Plugin = plugin;
             this.Config = plugin.Config.Tools.Housing;
             this.Info = new HousingInfo(plugin);
+            this.BookmarksUi = new BookmarksUi(plugin, this, this.Config);
             this.Teleport = new Teleport(plugin);
 
             if (this.Plugin.Interface.TargetModuleScanner.TryScanText(Signatures.AddonMapHide, out var addonMapHidePtr)) {
@@ -79,12 +81,16 @@ namespace RoleplayersToolbox.Tools.Housing {
 
             this.Plugin.Common.Functions.ContextMenu.OpenContextMenu += this.OnContextMenu;
             this.Plugin.Interface.Framework.OnUpdateEvent += this.OnFramework;
-            this.Plugin.Interface.CommandManager.AddHandler("/route", new CommandInfo(this.OnCommand) {
+            this.Plugin.Interface.CommandManager.AddHandler("/route", new CommandInfo(this.OnRouteCommand) {
                 HelpMessage = "Extract housing information from the given text and open the routing window",
+            });
+            this.Plugin.Interface.CommandManager.AddHandler("/bookmarks", new CommandInfo(this.OnBookmarksCommand) {
+                HelpMessage = "Toggles the housing bookmarks window",
             });
         }
 
         public void Dispose() {
+            this.Plugin.Interface.CommandManager.RemoveHandler("/bookmarks");
             this.Plugin.Interface.CommandManager.RemoveHandler("/route");
             this.Plugin.Interface.Framework.OnUpdateEvent -= this.OnFramework;
             this.Plugin.Common.Functions.ContextMenu.OpenContextMenu -= this.OnContextMenu;
@@ -103,9 +109,19 @@ namespace RoleplayersToolbox.Tools.Housing {
 
             ImGui.TextUnformatted("You can also use the /route command for this.");
             ImGui.TextUnformatted("Ex: /route jen lb w5 p3");
+
+            ImGui.Separator();
+
+            if (ImGui.Button("Open housing bookmarks")) {
+                this.BookmarksUi.ShouldDraw = true;
+            }
+
+            ImGui.TextUnformatted("You can also use the /bookmarks command for this.");
         }
 
         public override void DrawAlways() {
+            this.BookmarksUi.Draw();
+
             if (this.Destination == null) {
                 return;
             }
@@ -155,7 +171,7 @@ namespace RoleplayersToolbox.Tools.Housing {
 
             var ward = (int) (this.Destination.Ward ?? 0);
             if (ImGui.InputInt("Ward", ref ward)) {
-                this.Destination.Ward = (uint) Math.Max(1, Math.Min(60, ward));
+                this.Destination.Ward = (uint) Math.Max(1, Math.Min(24, ward));
                 anyChanged = true;
             }
 
@@ -190,13 +206,17 @@ namespace RoleplayersToolbox.Tools.Housing {
             ImGui.End();
         }
 
-        private void OnCommand(string command, string arguments) {
+        private void OnRouteCommand(string command, string arguments) {
             var player = this.Plugin.Interface.ClientState.LocalPlayer;
             if (player == null) {
                 return;
             }
 
             this.Destination = InfoExtractor.Extract(arguments, player.HomeWorld.GameData.DataCenter.Row, this.Plugin.Interface.Data, this.Info);
+        }
+
+        private void OnBookmarksCommand(string command, string arguments) {
+            this.BookmarksUi.ShouldDraw ^= true;
         }
 
         private void OnContextMenu(ContextMenuOpenArgs args) {
@@ -301,7 +321,7 @@ namespace RoleplayersToolbox.Tools.Housing {
             this.FlagHouseOnMap(this.Destination.Area.Value, this.Destination.Plot.Value);
         }
 
-        private void FlagHouseOnMap(HousingArea area, uint plot) {
+        internal void FlagHouseOnMap(HousingArea area, uint plot) {
             var info = this.Plugin.Interface.Data.GetExcelSheet<HousingMapMarkerInfo>().GetRow((uint) area, plot - 1);
             if (info == null) {
                 return;

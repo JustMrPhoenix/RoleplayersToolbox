@@ -5,6 +5,8 @@ using System.Runtime.InteropServices;
 using System.Text;
 using Dalamud.Game;
 using Dalamud.Game.Text.SeStringHandling;
+using Dalamud.Interface;
+using ImGuiNET;
 
 namespace RoleplayersToolbox {
     internal static class Util {
@@ -75,6 +77,29 @@ namespace RoleplayersToolbox {
             }
 
             return start;
+        }
+
+        internal static bool IconButton(FontAwesomeIcon icon, string? id = null) {
+            var label = icon.ToIconString();
+            if (id != null) {
+                label += $"##{id}";
+            }
+
+            ImGui.PushFont(UiBuilder.IconFont);
+            var ret = ImGui.Button(label);
+            ImGui.PopFont();
+
+            return ret;
+        }
+
+        internal static void Tooltip(string tooltip) {
+            if (!ImGui.IsItemHovered()) {
+                return;
+            }
+
+            ImGui.BeginTooltip();
+            ImGui.TextUnformatted(tooltip);
+            ImGui.EndTooltip();
         }
     }
 }

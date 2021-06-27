@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using RoleplayersToolbox.Tools.Housing;
 
 namespace RoleplayersToolbox.Tools {
@@ -13,5 +14,6 @@ namespace RoleplayersToolbox.Tools.Housing {
         public bool PlaceFlagOnSelect = true;
         public bool CloseMapOnApproach = true;
         public bool ClearFlagOnApproach = true;
+        public List<Bookmark> Bookmarks = new();
     }
 }

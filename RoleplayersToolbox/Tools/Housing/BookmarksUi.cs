@@ -9,7 +9,7 @@ namespace RoleplayersToolbox.Tools.Housing {
         private Plugin Plugin { get; }
         private HousingTool Tool { get; }
         private HousingConfig Config { get; }
-        private (Bookmark editing, int index)? _editing;
+        internal (Bookmark editing, int index)? Editing;
 
         internal bool ShouldDraw;
 
@@ -32,7 +32,7 @@ namespace RoleplayersToolbox.Tools.Housing {
             }
 
             if (Util.IconButton(FontAwesomeIcon.Plus)) {
-                this._editing = (new Bookmark(string.Empty), -1);
+                this.Editing = (new Bookmark(string.Empty), -1);
             }
 
             var toDelete = -1;
@@ -69,7 +69,7 @@ namespace RoleplayersToolbox.Tools.Housing {
                         ImGui.SameLine();
 
                         if (Util.IconButton(FontAwesomeIcon.PencilAlt, hash)) {
-                            this._editing = (bookmark.Clone(), i);
+                            this.Editing = (bookmark.Clone(), i);
                         }
 
                         Util.Tooltip("Edit");
@@ -100,7 +100,7 @@ namespace RoleplayersToolbox.Tools.Housing {
         }
 
         private void AddEditWindow() {
-            if (this._editing == null) {
+            if (this.Editing == null) {
                 return;
             }
 
@@ -109,7 +109,7 @@ namespace RoleplayersToolbox.Tools.Housing {
                 return;
             }
 
-            var (bookmark, index) = this._editing.Value;
+            var (bookmark, index) = this.Editing.Value;
 
             ImGui.InputText("Name", ref bookmark.Name, 255);
 
@@ -165,13 +165,13 @@ namespace RoleplayersToolbox.Tools.Housing {
                 }
 
                 this.Plugin.SaveConfig();
-                this._editing = null;
+                this.Editing = null;
             }
 
             ImGui.SameLine();
 
             if (ImGui.Button("Cancel")) {
-                this._editing = null;
+                this.Editing = null;
             }
 
             ImGui.End();

@@ -55,6 +55,6 @@
         <PackageReference Include="F23.StringSimilarity" Version="4.1.0"/>
         <PackageReference Include="Fody" Version="6.5.1" PrivateAssets="all"/>
         <PackageReference Include="ILMerge.Fody" Version="1.16.0" PrivateAssets="all"/>
-        <PackageReference Include="XivCommon" Version="2.1.1"/>
+        <PackageReference Include="XivCommon" Version="2.2.0-alpha.1"/>
     </ItemGroup>
 </Project>

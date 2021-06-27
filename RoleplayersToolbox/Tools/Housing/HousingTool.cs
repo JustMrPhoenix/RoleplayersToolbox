@@ -224,7 +224,10 @@ namespace RoleplayersToolbox.Tools.Housing {
                 return;
             }
 
-            args.Items.Add(new NormalContextMenuItem("Select as Destination", this.SelectDestination));
+            args.Items.Add(new NormalContextSubMenuItem("Roleplayer's Toolbox", args => {
+                args.Items.Add(new NormalContextMenuItem("Select as Destination", this.SelectDestination));
+                args.Items.Add(new NormalContextMenuItem("Add Bookmark", this.AddBookmark));
+            }));
         }
 
         private void SelectDestination(ContextMenuItemSelectedArgs args) {
@@ -235,6 +238,22 @@ namespace RoleplayersToolbox.Tools.Housing {
 
             this.ClearFlag();
             this.Destination = InfoExtractor.Extract(listing.Description.TextValue, listing.World.Value.DataCenter.Row, this.Plugin.Interface.Data, this.Info);
+        }
+
+        private void AddBookmark(ContextMenuItemSelectedArgs args) {
+            var listing = this.Plugin.Common.Functions.PartyFinder.CurrentListings.Values.FirstOrDefault(listing => listing.ContentIdLower == args.ContentIdLower);
+            if (listing == null) {
+                return;
+            }
+
+            var dest = InfoExtractor.Extract(listing.Description.TextValue, listing.World.Value.DataCenter.Row, this.Plugin.Interface.Data, this.Info);
+            this.BookmarksUi.Editing = (new Bookmark(string.Empty) {
+                WorldId = dest.World?.RowId ?? 0,
+                Area = dest.Area ?? 0,
+                Ward = dest.Ward ?? 0,
+                Plot = dest.Plot ?? 0,
+            }, -1);
+            this.BookmarksUi.ShouldDraw = true;
         }
 
         private void OnFramework(Framework framework) {

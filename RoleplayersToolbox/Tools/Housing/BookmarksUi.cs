@@ -10,6 +10,7 @@ namespace RoleplayersToolbox.Tools.Housing {
         private HousingTool Tool { get; }
         private HousingConfig Config { get; }
         internal (Bookmark editing, int index)? Editing;
+        private int _dragging = -1;
 
         internal bool ShouldDraw;
 
@@ -37,6 +38,7 @@ namespace RoleplayersToolbox.Tools.Housing {
 
             var toDelete = -1;
 
+            (int src, int dst)? drag = null;
             if (ImGui.BeginChild("bookmark-list", new Vector2(-1, -1))) {
                 for (var i = 0; i < this.Config.Bookmarks.Count; i++) {
                     var bookmark = this.Config.Bookmarks[i];
@@ -85,10 +87,38 @@ namespace RoleplayersToolbox.Tools.Housing {
                         ImGui.TreePop();
                     }
 
+                    if (ImGui.IsItemActive() || this._dragging == i) {
+                        this._dragging = i;
+                        var step = 0;
+                        if (ImGui.GetIO().MouseDelta.Y < 0 && ImGui.GetMousePos().Y < ImGui.GetItemRectMin().Y) {
+                            step = -1;
+                        }
+
+                        if (ImGui.GetIO().MouseDelta.Y > 0 && ImGui.GetMousePos().Y > ImGui.GetItemRectMax().Y) {
+                            step = 1;
+                        }
+
+                        if (step != 0) {
+                            drag = (i, i + step);
+                        }
+                    }
+
                     ImGui.Separator();
                 }
 
                 ImGui.EndChild();
+            }
+
+            if (!ImGui.IsMouseDown(ImGuiMouseButton.Left) && this._dragging != -1) {
+                this._dragging = -1;
+                this.Plugin.SaveConfig();
+            }
+
+            if (drag != null && drag.Value.dst < this.Config.Bookmarks.Count && drag.Value.dst >= 0) {
+                this._dragging = drag.Value.dst;
+                var temp = this.Config.Bookmarks[drag.Value.src];
+                this.Config.Bookmarks[drag.Value.src] = this.Config.Bookmarks[drag.Value.dst];
+                this.Config.Bookmarks[drag.Value.dst] = temp;
             }
 
             if (toDelete > -1) {
@@ -157,7 +187,7 @@ namespace RoleplayersToolbox.Tools.Housing {
                 bookmark.Plot = (uint) Math.Max(1, Math.Min(60, plot));
             }
 
-            if (ImGui.Button("Save")) {
+            if (ImGui.Button("Save") && !bookmark.AnyZero()) {
                 if (index < 0) {
                     this.Config.Bookmarks.Add(bookmark);
                 } else if (index < this.Config.Bookmarks.Count) {

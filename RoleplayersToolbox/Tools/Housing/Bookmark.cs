@@ -21,5 +21,13 @@ namespace RoleplayersToolbox.Tools.Housing {
                 Plot = this.Plot,
             };
         }
+
+        internal bool AnyZero() {
+            return this.Name == string.Empty
+                   || this.WorldId == 0
+                   || this.Area == 0
+                   || this.Ward == 0
+                   || this.Plot == 0;
+        }
     }
 }

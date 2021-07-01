@@ -36,6 +36,14 @@ namespace RoleplayersToolbox.Tools.Housing {
                 this.Editing = (new Bookmark(string.Empty), -1);
             }
 
+            Util.Tooltip("Add a new bookmark");
+
+            ImGui.SameLine();
+
+            ImGui.TextUnformatted("Drag to reorder.");
+
+            ImGui.Spacing();
+
             var toDelete = -1;
 
             (int src, int dst)? drag = null;

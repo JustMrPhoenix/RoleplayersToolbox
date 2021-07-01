@@ -23,7 +23,7 @@ namespace RoleplayersToolbox.Tools.Housing {
         }
 
         internal bool AnyZero() {
-            return this.Name == string.Empty
+            return string.IsNullOrWhiteSpace(this.Name)
                    || this.WorldId == 0
                    || this.Area == 0
                    || this.Ward == 0

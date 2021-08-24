@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Dalamud.Data;
-using Dalamud.Plugin;
+using Dalamud.Logging;
 using Lumina;
 using Lumina.Data.Files;
 using Lumina.Data.Parsing.Layer;
@@ -15,14 +15,14 @@ namespace RoleplayersToolbox.Tools.Housing {
         internal HousingDistances Distances { get; }
 
         internal HousingInfo(Plugin plugin) {
-            this.Data = plugin.Interface.Data;
+            this.Data = plugin.DataManager;
             this.GameData = plugin.GameData;
             this.Distances = this.PrecalculateClosest();
         }
 
         private HousingAethernet? CalculateClosest(HousingArea area, uint plot) {
             // subtract 1 from the subrow because Lumina is zero-indexed even though the sheet isn't
-            var info = this.Data.GetExcelSheet<HousingMapMarkerInfo>().GetRow((uint) area, plot - 1);
+            var info = this.Data.GetExcelSheet<HousingMapMarkerInfo>()!.GetRow((uint) area, plot - 1);
             if (info == null) {
                 return null;
             }
@@ -30,7 +30,7 @@ namespace RoleplayersToolbox.Tools.Housing {
             var (x, y, z) = (info.X, info.Y, info.Z);
 
             (HousingAethernet aethernet, double distance)? shortest = null;
-            foreach (var aethernet in this.Data.GetExcelSheet<HousingAethernet>()) {
+            foreach (var aethernet in this.Data.GetExcelSheet<HousingAethernet>()!) {
                 if (aethernet.TerritoryType.Row != (uint) area) {
                     continue;
                 }
@@ -79,7 +79,7 @@ namespace RoleplayersToolbox.Tools.Housing {
             return new HousingDistances(this.Data, allClosest);
         }
 
-        internal LgbFile? GetLgbFromPath(string path) {
+        private LgbFile? GetLgbFromPath(string path) {
             if (this.GameData == null) {
                 return null;
             }
@@ -92,18 +92,18 @@ namespace RoleplayersToolbox.Tools.Housing {
             }
         }
 
-        internal LgbFile? GetLgbFromArea(HousingArea area) {
-            var territory = this.Data.GetExcelSheet<TerritoryType>().GetRow((uint) area);
+        private LgbFile? GetLgbFromArea(HousingArea area) {
+            var territory = this.Data.GetExcelSheet<TerritoryType>()!.GetRow((uint) area);
             if (territory == null) {
                 return null;
             }
 
             var path = territory.Bg.ToString();
-            path = path.Substring(0, path.LastIndexOf('/'));
+            path = path[..path.LastIndexOf('/')];
             return this.GetLgbFromPath($"bg/{path}/planmap.lgb");
         }
 
-        internal void LoadObjectsFromFile(LgbFile lgb) {
+        private void LoadObjectsFromFile(LgbFile lgb) {
             foreach (var layer in lgb.Layers) {
                 foreach (var obj in layer.InstanceObjects) {
                     this.LgbObjects[obj.InstanceId] = obj;
@@ -120,7 +120,7 @@ namespace RoleplayersToolbox.Tools.Housing {
             this.LoadObjectsFromFile(lgb);
         }
 
-        internal void LoadObjectsFromArea(HousingArea area) {
+        private void LoadObjectsFromArea(HousingArea area) {
             var lgb = this.GetLgbFromArea(area);
             if (lgb == null) {
                 return;

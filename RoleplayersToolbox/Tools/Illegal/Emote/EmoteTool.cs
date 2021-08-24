@@ -32,26 +32,26 @@ namespace RoleplayersToolbox.Tools.Illegal.Emote {
         internal EmoteTool(Plugin plugin) {
             this.Plugin = plugin;
 
-            this.Plugin.Interface.CommandManager.AddHandler("/emoteid", new CommandInfo(this.EmoteIdCommand) {
+            this.Plugin.CommandManager.AddHandler("/emoteid", new CommandInfo(this.EmoteIdCommand) {
                 HelpMessage = "Run the emote with the given ID if it is unlocked",
             });
 
-            if (this.Plugin.Interface.TargetModuleScanner.TryScanText(Signatures.SetActionOnHotbar, out var setPtr)) {
-                this.SetActionOnHotbarHook = new Hook<SetActionOnHotbarDelegate>(setPtr, new SetActionOnHotbarDelegate(this.SetActionOnHotbarDetour));
+            if (this.Plugin.SigScanner.TryScanText(Signatures.SetActionOnHotbar, out var setPtr)) {
+                this.SetActionOnHotbarHook = new Hook<SetActionOnHotbarDelegate>(setPtr, this.SetActionOnHotbarDetour);
                 this.SetActionOnHotbarHook.Enable();
             }
 
-            if (this.Plugin.Interface.TargetModuleScanner.TryScanText(Signatures.RunEmote, out var runEmotePtr)) {
+            if (this.Plugin.SigScanner.TryScanText(Signatures.RunEmote, out var runEmotePtr)) {
                 this.RunEmoteFunction = Marshal.GetDelegateForFunctionPointer<RunEmoteDelegate>(runEmotePtr);
             }
 
-            this.Plugin.Interface.TargetModuleScanner.TryGetStaticAddressFromSig(Signatures.RunEmoteFirstArg, out this._runEmoteFirstArg);
-            this.Plugin.Interface.TargetModuleScanner.TryGetStaticAddressFromSig(Signatures.RunEmoteThirdArg, out this._runEmoteThirdArg);
+            this.Plugin.SigScanner.TryGetStaticAddressFromSig(Signatures.RunEmoteFirstArg, out this._runEmoteFirstArg);
+            this.Plugin.SigScanner.TryGetStaticAddressFromSig(Signatures.RunEmoteThirdArg, out this._runEmoteThirdArg);
         }
 
         public void Dispose() {
             this.SetActionOnHotbarHook?.Dispose();
-            this.Plugin.Interface.CommandManager.RemoveHandler("/emoteid");
+            this.Plugin.CommandManager.RemoveHandler("/emoteid");
         }
 
         public override void DrawSettings(ref bool anyChanged) {

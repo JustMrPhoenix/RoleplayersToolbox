@@ -53,7 +53,7 @@ namespace RoleplayersToolbox.Tools.Housing {
                     var hash = bookmark.GetHashCode().ToString();
 
                     if (ImGui.TreeNode($"{bookmark.Name}##{hash}")) {
-                        var worldName = this.Plugin.Interface.Data.GetExcelSheet<World>().GetRow(bookmark.WorldId)?.Name;
+                        var worldName = this.Plugin.DataManager.GetExcelSheet<World>()!.GetRow(bookmark.WorldId)?.Name;
                         ImGui.TextUnformatted($"{worldName}/{bookmark.Area.Name()}/W{bookmark.Ward}/P{bookmark.Plot}");
 
                         if (Util.IconButton(FontAwesomeIcon.MapMarkerAlt, hash)) {
@@ -67,7 +67,7 @@ namespace RoleplayersToolbox.Tools.Housing {
                         if (Util.IconButton(FontAwesomeIcon.Route, hash)) {
                             this.Tool.Destination = new DestinationInfo(
                                 this.Tool.Info,
-                                this.Plugin.Interface.Data.GetExcelSheet<World>().GetRow(bookmark.WorldId),
+                                this.Plugin.DataManager.GetExcelSheet<World>()!.GetRow(bookmark.WorldId),
                                 bookmark.Area,
                                 bookmark.Ward,
                                 bookmark.Plot
@@ -153,11 +153,11 @@ namespace RoleplayersToolbox.Tools.Housing {
 
             var world = bookmark.WorldId == 0
                 ? null
-                : this.Plugin.Interface.Data.GetExcelSheet<World>().GetRow(bookmark.WorldId);
+                : this.Plugin.DataManager.GetExcelSheet<World>()!.GetRow(bookmark.WorldId);
             if (ImGui.BeginCombo("World", world?.Name?.ToString() ?? string.Empty)) {
-                var dataCentre = this.Plugin.Interface.ClientState.LocalPlayer?.HomeWorld?.GameData?.DataCenter?.Row;
+                var dataCentre = this.Plugin.ClientState.LocalPlayer?.HomeWorld?.GameData?.DataCenter?.Row;
 
-                foreach (var availWorld in this.Plugin.Interface.Data.GetExcelSheet<World>()) {
+                foreach (var availWorld in this.Plugin.DataManager.GetExcelSheet<World>()!) {
                     if (availWorld.DataCenter.Row != dataCentre || !availWorld.IsPublic) {
                         continue;
                     }

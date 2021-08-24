@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Runtime.InteropServices;
-using Dalamud.Game.ClientState.Actors;
-using Dalamud.Game.ClientState.Structs;
+using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Hooking;
 using ImGuiNET;
 
@@ -24,17 +22,17 @@ namespace RoleplayersToolbox.Tools.Targeting {
             this.Plugin = plugin;
             this.Config = this.Plugin.Config.Tools.Targeting;
 
-            if (this.Plugin.Interface.TargetModuleScanner.TryScanText(Signatures.LeftClickTarget, out var leftClickPtr)) {
+            if (this.Plugin.SigScanner.TryScanText(Signatures.LeftClickTarget, out var leftClickPtr)) {
                 unsafe {
-                    this.LeftClickHook = new Hook<ClickTargetDelegate>(leftClickPtr, new ClickTargetDelegate(this.LeftClickDetour));
+                    this.LeftClickHook = new Hook<ClickTargetDelegate>(leftClickPtr, this.LeftClickDetour);
                 }
 
                 this.LeftClickHook.Enable();
             }
 
-            if (this.Plugin.Interface.TargetModuleScanner.TryScanText(Signatures.RightClickTarget, out var rightClickPtr)) {
+            if (this.Plugin.SigScanner.TryScanText(Signatures.RightClickTarget, out var rightClickPtr)) {
                 unsafe {
-                    this.RightClickHook = new Hook<ClickTargetDelegate>(rightClickPtr, new ClickTargetDelegate(this.RightClickDetour));
+                    this.RightClickHook = new Hook<ClickTargetDelegate>(rightClickPtr, this.RightClickDetour);
                 }
 
                 this.RightClickHook.Enable();
@@ -64,9 +62,9 @@ namespace RoleplayersToolbox.Tools.Targeting {
             }
 
             if (this.Config.LeftClickExamine) {
-                var actorStruct = Marshal.PtrToStructure<Actor>((IntPtr) clickedOn);
-                if (actorStruct.ObjectKind == ObjectKind.Player) {
-                    this.Plugin.Common.Functions.Examine.OpenExamineWindow(actorStruct.ActorId);
+                var obj = this.Plugin.ObjectTable.CreateObjectReference((IntPtr) clickedOn);
+                if (obj != null && obj.ObjectKind == ObjectKind.Player) {
+                    this.Plugin.Common.Functions.Examine.OpenExamineWindow(obj.ObjectId);
                     // tell game current target was left-clicked
                     return this.LeftClickHook!.Original(a1, target, a3);
                 }
@@ -93,9 +91,9 @@ namespace RoleplayersToolbox.Tools.Targeting {
                     goto Original;
                 }
 
-                var actorStruct = Marshal.PtrToStructure<Actor>((IntPtr) clickedOn);
-                if (actorStruct.ObjectKind == ObjectKind.Player) {
-                    this.Plugin.Common.Functions.Examine.OpenExamineWindow(actorStruct.ActorId);
+                var obj = this.Plugin.ObjectTable.CreateObjectReference((IntPtr) clickedOn);
+                if (obj != null && obj.ObjectKind == ObjectKind.Player) {
+                    this.Plugin.Common.Functions.Examine.OpenExamineWindow(obj.ObjectId);
                     // tell game nothing was right-clicked
                     return this.RightClickHook!.Original(a1, null, a3);
                 }

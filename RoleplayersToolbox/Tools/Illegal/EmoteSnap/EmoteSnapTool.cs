@@ -23,18 +23,18 @@ namespace RoleplayersToolbox.Tools.Illegal.EmoteSnap {
             this.Plugin = plugin;
             this.Config = this.Plugin.Config.Tools.EmoteSnap;
 
-            if (this.Plugin.Interface.TargetModuleScanner.TryScanText(Signatures.ShouldSnap, out var snapPtr)) {
-                this.ShouldSnapHook = new Hook<ShouldSnapDelegate>(snapPtr, new ShouldSnapDelegate(this.ShouldSnapDetour));
+            if (this.Plugin.SigScanner.TryScanText(Signatures.ShouldSnap, out var snapPtr)) {
+                this.ShouldSnapHook = new Hook<ShouldSnapDelegate>(snapPtr, this.ShouldSnapDetour);
                 this.ShouldSnapHook.Enable();
             }
 
-            this.Plugin.Interface.CommandManager.AddHandler("/dozesnap", new CommandInfo(this.OnCommand) {
+            this.Plugin.CommandManager.AddHandler("/dozesnap", new CommandInfo(this.OnCommand) {
                 HelpMessage = "Toggle snapping for the /doze emote",
             });
         }
 
         public void Dispose() {
-            this.Plugin.Interface.CommandManager.RemoveHandler("/dozesnap");
+            this.Plugin.CommandManager.RemoveHandler("/dozesnap");
             this.ShouldSnapHook?.Dispose();
         }
 
@@ -55,7 +55,7 @@ namespace RoleplayersToolbox.Tools.Illegal.EmoteSnap {
             this.Config.DisableDozeSnap ^= true;
 
             var status = this.Config.DisableDozeSnap ? "off" : "on";
-            this.Plugin.Interface.Framework.Gui.Chat.Print($"/doze snap toggled {status}.");
+            this.Plugin.ChatGui.Print($"/doze snap toggled {status}.");
         }
     }
 }

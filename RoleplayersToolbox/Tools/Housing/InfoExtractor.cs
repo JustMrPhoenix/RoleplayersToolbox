@@ -47,7 +47,7 @@ namespace RoleplayersToolbox.Tools.Housing {
 
         private static World? FindWorld(string source, uint dataCentre, DataManager data) {
             var words = NonWord.Split(source).Where(word => word.ToLowerInvariant() != "gg").ToArray();
-            var mostSimilar = data.Excel.GetSheet<World>()
+            var mostSimilar = data.Excel.GetSheet<World>()!
                 .Where(world => world.DataCenter.Row == dataCentre)
                 .SelectMany(world => {
                     var name = world.Name.ToString().ToLowerInvariant();

@@ -27,7 +27,7 @@ namespace RoleplayersToolbox.Tools.Housing {
         internal HousingAethernet? GetClosest(HousingArea area, uint plot) {
             if (Overrides.TryGetValue(area, out var overridePlots)) {
                 if (overridePlots.TryGetValue(plot, out var overrideId)) {
-                    var overrideAethernet = this.Data.GetExcelSheet<HousingAethernet>().GetRow(overrideId);
+                    var overrideAethernet = this.Data.GetExcelSheet<HousingAethernet>()!.GetRow(overrideId);
                     if (overrideAethernet != null) {
                         return overrideAethernet;
                     }

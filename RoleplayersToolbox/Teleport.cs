@@ -20,11 +20,11 @@ namespace RoleplayersToolbox {
         private DataManager Data { get; }
 
         internal Teleport(Plugin plugin) {
-            this.Data = plugin.Interface.Data;
+            this.Data = plugin.DataManager;
 
-            plugin.Interface.TargetModuleScanner.TryGetStaticAddressFromSig(Signatures.TelepoAddress, out this._telepo);
+            plugin.SigScanner.TryGetStaticAddressFromSig(Signatures.TelepoAddress, out this._telepo);
 
-            if (plugin.Interface.TargetModuleScanner.TryScanText(Signatures.Teleport, out var teleportPtr)) {
+            if (plugin.SigScanner.TryScanText(Signatures.Teleport, out var teleportPtr)) {
                 this._teleport = Marshal.GetDelegateForFunctionPointer<TeleportDelegate>(teleportPtr);
             }
         }
@@ -34,7 +34,7 @@ namespace RoleplayersToolbox {
                 return;
             }
 
-            var aetheryte = this.Data.GetExcelSheet<Aetheryte>().FirstOrDefault(aeth => aeth.IsAetheryte && aeth.Territory.Row == area.CityStateTerritoryType());
+            var aetheryte = this.Data.GetExcelSheet<Aetheryte>()!.FirstOrDefault(aeth => aeth.IsAetheryte && aeth.Territory.Row == area.CityStateTerritoryType());
             if (aetheryte == null) {
                 return;
             }

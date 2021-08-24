@@ -2,8 +2,8 @@
 using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using Dalamud.Game;
 using Dalamud.Game.Command;
-using Dalamud.Game.Internal;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using FFXIVClientStructs.FFXIV.Client.UI;
@@ -73,26 +73,26 @@ namespace RoleplayersToolbox.Tools.Housing {
             this.BookmarksUi = new BookmarksUi(plugin, this, this.Config);
             this.Teleport = new Teleport(plugin);
 
-            if (this.Plugin.Interface.TargetModuleScanner.TryScanText(Signatures.AddonMapHide, out var addonMapHidePtr)) {
+            if (this.Plugin.SigScanner.TryScanText(Signatures.AddonMapHide, out var addonMapHidePtr)) {
                 this._addonMapHide = Marshal.GetDelegateForFunctionPointer<AddonMapHideDelegate>(addonMapHidePtr);
             }
 
-            this.Plugin.Interface.TargetModuleScanner.TryGetStaticAddressFromSig(Signatures.HousingPointer, out this._housingPointer);
+            this.Plugin.SigScanner.TryGetStaticAddressFromSig(Signatures.HousingPointer, out this._housingPointer);
 
             this.Plugin.Common.Functions.ContextMenu.OpenContextMenu += this.OnContextMenu;
-            this.Plugin.Interface.Framework.OnUpdateEvent += this.OnFramework;
-            this.Plugin.Interface.CommandManager.AddHandler("/route", new CommandInfo(this.OnRouteCommand) {
+            this.Plugin.Framework.Update += this.OnFramework;
+            this.Plugin.CommandManager.AddHandler("/route", new CommandInfo(this.OnRouteCommand) {
                 HelpMessage = "Extract housing information from the given text and open the routing window",
             });
-            this.Plugin.Interface.CommandManager.AddHandler("/bookmarks", new CommandInfo(this.OnBookmarksCommand) {
+            this.Plugin.CommandManager.AddHandler("/bookmarks", new CommandInfo(this.OnBookmarksCommand) {
                 HelpMessage = "Toggles the housing bookmarks window",
             });
         }
 
         public void Dispose() {
-            this.Plugin.Interface.CommandManager.RemoveHandler("/bookmarks");
-            this.Plugin.Interface.CommandManager.RemoveHandler("/route");
-            this.Plugin.Interface.Framework.OnUpdateEvent -= this.OnFramework;
+            this.Plugin.CommandManager.RemoveHandler("/bookmarks");
+            this.Plugin.CommandManager.RemoveHandler("/route");
+            this.Plugin.Framework.Update -= this.OnFramework;
             this.Plugin.Common.Functions.ContextMenu.OpenContextMenu -= this.OnContextMenu;
         }
 
@@ -137,9 +137,9 @@ namespace RoleplayersToolbox.Tools.Housing {
 
             var world = this.Destination.World;
             if (ImGui.BeginCombo("World", world?.Name?.ToString() ?? string.Empty)) {
-                var dataCentre = this.Plugin.Interface.ClientState.LocalPlayer?.HomeWorld?.GameData?.DataCenter?.Row;
+                var dataCentre = this.Plugin.ClientState.LocalPlayer?.HomeWorld?.GameData?.DataCenter?.Row;
 
-                foreach (var availWorld in this.Plugin.Interface.Data.GetExcelSheet<World>()) {
+                foreach (var availWorld in this.Plugin.DataManager.GetExcelSheet<World>()!) {
                     if (availWorld.DataCenter.Row != dataCentre || !availWorld.IsPublic) {
                         continue;
                     }
@@ -189,11 +189,11 @@ namespace RoleplayersToolbox.Tools.Housing {
                 ImGui.SameLine();
 
                 var destArea = this.Destination.Area.Value;
-                if (!destArea.CanWorldTravel() && this.Destination?.World != null && this.Destination?.World != this.Plugin.Interface.ClientState.LocalPlayer?.CurrentWorld?.GameData) {
+                if (!destArea.CanWorldTravel() && this.Destination?.World != null && this.Destination?.World != this.Plugin.ClientState.LocalPlayer?.CurrentWorld?.GameData) {
                     destArea = HousingArea.Mist;
                 }
 
-                var name = destArea.CityState(this.Plugin.Interface.Data).PlaceName.Value.Name;
+                var name = destArea.CityState(this.Plugin.DataManager).PlaceName.Value!.Name;
                 if (ImGui.Button($"Teleport to {name}")) {
                     this.Teleport.TeleportToHousingArea(destArea);
                 }
@@ -207,12 +207,12 @@ namespace RoleplayersToolbox.Tools.Housing {
         }
 
         private void OnRouteCommand(string command, string arguments) {
-            var player = this.Plugin.Interface.ClientState.LocalPlayer;
+            var player = this.Plugin.ClientState.LocalPlayer;
             if (player == null) {
                 return;
             }
 
-            this.Destination = InfoExtractor.Extract(arguments, player.HomeWorld.GameData.DataCenter.Row, this.Plugin.Interface.Data, this.Info);
+            this.Destination = InfoExtractor.Extract(arguments, player.HomeWorld.GameData.DataCenter.Row, this.Plugin.DataManager, this.Info);
         }
 
         private void OnBookmarksCommand(string command, string arguments) {
@@ -237,7 +237,7 @@ namespace RoleplayersToolbox.Tools.Housing {
             }
 
             this.ClearFlag();
-            this.Destination = InfoExtractor.Extract(listing.Description.TextValue, listing.World.Value.DataCenter.Row, this.Plugin.Interface.Data, this.Info);
+            this.Destination = InfoExtractor.Extract(listing.Description.TextValue, listing.World.Value.DataCenter.Row, this.Plugin.DataManager, this.Info);
         }
 
         private void AddBookmark(ContextMenuItemSelectedArgs args) {
@@ -246,7 +246,7 @@ namespace RoleplayersToolbox.Tools.Housing {
                 return;
             }
 
-            var dest = InfoExtractor.Extract(listing.Description.TextValue, listing.World.Value.DataCenter.Row, this.Plugin.Interface.Data, this.Info);
+            var dest = InfoExtractor.Extract(listing.Description.TextValue, listing.World.Value.DataCenter.Row, this.Plugin.DataManager, this.Info);
             this.BookmarksUi.Editing = (new Bookmark(string.Empty) {
                 WorldId = dest.World?.RowId ?? 0,
                 Area = dest.Area ?? 0,
@@ -269,12 +269,12 @@ namespace RoleplayersToolbox.Tools.Housing {
                 return;
             }
 
-            var info = this.Plugin.Interface.Data.GetExcelSheet<HousingMapMarkerInfo>().GetRow((uint) destination.Area!.Value, (uint) destination.Plot! - 1);
+            var info = this.Plugin.DataManager.GetExcelSheet<HousingMapMarkerInfo>()!.GetRow((uint) destination.Area!.Value, (uint) destination.Plot! - 1);
             if (info == null) {
                 return;
             }
 
-            var player = this.Plugin.Interface.ClientState.LocalPlayer;
+            var player = this.Plugin.ClientState.LocalPlayer;
             if (player == null) {
                 return;
             }
@@ -285,7 +285,7 @@ namespace RoleplayersToolbox.Tools.Housing {
             }
 
             // ensure in correct zone
-            if (this.Plugin.Interface.ClientState.TerritoryType != (ushort) destination.Area) {
+            if (this.Plugin.ClientState.TerritoryType != (ushort) destination.Area) {
                 return;
             }
 
@@ -326,9 +326,9 @@ namespace RoleplayersToolbox.Tools.Housing {
         }
 
         private void CloseMap() {
-            var addon = this.Plugin.Interface.Framework.Gui.GetAddonByName("AreaMap", 1);
-            if (addon != null) {
-                this._addonMapHide?.Invoke(addon.Address);
+            var addon = this.Plugin.GameGui.GetAddonByName("AreaMap", 1);
+            if (addon != IntPtr.Zero) {
+                this._addonMapHide?.Invoke(addon);
             }
         }
 
@@ -341,7 +341,7 @@ namespace RoleplayersToolbox.Tools.Housing {
         }
 
         internal void FlagHouseOnMap(HousingArea area, uint plot) {
-            var info = this.Plugin.Interface.Data.GetExcelSheet<HousingMapMarkerInfo>().GetRow((uint) area, plot - 1);
+            var info = this.Plugin.DataManager.GetExcelSheet<HousingMapMarkerInfo>()!.GetRow((uint) area, plot - 1);
             if (info == null) {
                 return;
             }
@@ -354,25 +354,24 @@ namespace RoleplayersToolbox.Tools.Housing {
             }
 
             var mapLink = new MapLinkPayload(
-                this.Plugin.Interface.Data,
                 terr.RowId,
                 map!.RowId,
                 (int) (info.X * 1_000f),
                 (int) (info.Z * 1_000f)
             );
 
-            this.Plugin.Interface.Framework.Gui.OpenMapWithMapLink(mapLink);
+            this.Plugin.GameGui.OpenMapWithMapLink(mapLink);
         }
 
         private unsafe void HighlightResidentialTeleport() {
-            var addon = this.Plugin.Interface.Framework.Gui.GetAddonByName("HousingSelectBlock", 1);
-            if (addon == null) {
+            var addon = this.Plugin.GameGui.GetAddonByName("HousingSelectBlock", 1);
+            if (addon == IntPtr.Zero) {
                 return;
             }
 
             var shouldSet = false;
 
-            var player = this.Plugin.Interface.ClientState.LocalPlayer;
+            var player = this.Plugin.ClientState.LocalPlayer;
             if (player != null && this.Destination?.World != null) {
                 shouldSet = player.CurrentWorld.GameData == this.Destination.World;
             }
@@ -380,11 +379,11 @@ namespace RoleplayersToolbox.Tools.Housing {
             if (this.Destination?.Area == null) {
                 shouldSet = false;
             } else {
-                var currentArea = this.Plugin.Interface.ClientState.TerritoryType;
+                var currentArea = this.Plugin.ClientState.TerritoryType;
                 shouldSet = shouldSet && (currentArea == (ushort) this.Destination.Area || currentArea == this.Destination.Area.Value.CityStateTerritoryType());
             }
 
-            var unit = (AtkUnitBase*) addon.Address;
+            var unit = (AtkUnitBase*) addon;
             var uld = unit->UldManager;
             if (uld.NodeListCount < 1) {
                 return;
@@ -411,18 +410,18 @@ namespace RoleplayersToolbox.Tools.Housing {
                 }
 
                 var textNode = (AtkTextNode*) radioUld.NodeList[3];
-                var text = Util.ReadSeString((IntPtr) textNode->NodeText.StringPtr, this.Plugin.Interface.SeStringManager);
+                var text = Util.ReadSeString((IntPtr) textNode->NodeText.StringPtr, this.Plugin.SeStringManager);
                 HighlightIf(radioButton, shouldSet && text.TextValue == $"{this.Destination?.Ward}");
             } while ((radioButton = radioButton->PrevSiblingNode) != null);
         }
 
         private unsafe void HighlightSelectString() {
-            var addon = this.Plugin.Interface.Framework.Gui.GetAddonByName("SelectString", 1);
-            if (addon == null) {
+            var addon = this.Plugin.GameGui.GetAddonByName("SelectString", 1);
+            if (addon == IntPtr.Zero) {
                 return;
             }
 
-            var select = (AddonSelectString*) addon.Address;
+            var select = (AddonSelectString*) addon;
             var list = select->PopupMenu.List;
             if (list == null) {
                 return;
@@ -434,7 +433,7 @@ namespace RoleplayersToolbox.Tools.Housing {
         private bool ShouldHighlight(SeString str) {
             var text = str.TextValue;
 
-            var sameWorld = this.Destination?.World == this.Plugin.Interface.ClientState.LocalPlayer?.CurrentWorld?.GameData;
+            var sameWorld = this.Destination?.World == this.Plugin.ClientState.LocalPlayer?.CurrentWorld?.GameData;
             if (!sameWorld && this.Destination?.World != null) {
                 return text == " Visit Another World Server.";
             }
@@ -446,7 +445,7 @@ namespace RoleplayersToolbox.Tools.Housing {
             }
 
             // ReSharper disable once InvertIf
-            if (this.Destination?.Ward != null && this.Plugin.Interface.ClientState.TerritoryType == this.Destination?.Area?.CityStateTerritoryType()) {
+            if (this.Destination?.Ward != null && this.Plugin.ClientState.TerritoryType == this.Destination?.Area?.CityStateTerritoryType()) {
                 switch (text) {
                     case " Residential District Aethernet.":
                     case "Go to specified ward. (Review Tabs)":
@@ -461,7 +460,7 @@ namespace RoleplayersToolbox.Tools.Housing {
             for (var i = 0; i < list->ListLength; i++) {
                 var item = list->ItemRendererList + i;
                 var button = item->AtkComponentListItemRenderer->AtkComponentButton;
-                var buttonText = Util.ReadSeString((IntPtr) button.ButtonTextNode->NodeText.StringPtr, this.Plugin.Interface.SeStringManager);
+                var buttonText = Util.ReadSeString((IntPtr) button.ButtonTextNode->NodeText.StringPtr, this.Plugin.SeStringManager);
 
                 var component = (AtkComponentBase*) item->AtkComponentListItemRenderer;
 
@@ -470,19 +469,19 @@ namespace RoleplayersToolbox.Tools.Housing {
         }
 
         private unsafe void HighlightWorldTravel() {
-            var player = this.Plugin.Interface.ClientState.LocalPlayer;
+            var player = this.Plugin.ClientState.LocalPlayer;
             if (player == null) {
                 return;
             }
 
             var world = this.Destination?.World;
 
-            var addon = this.Plugin.Interface.Framework.Gui.GetAddonByName("WorldTravelSelect", 1);
-            if (addon == null) {
+            var addon = this.Plugin.GameGui.GetAddonByName("WorldTravelSelect", 1);
+            if (addon == IntPtr.Zero) {
                 return;
             }
 
-            var unit = (AtkUnitBase*) addon.Address;
+            var unit = (AtkUnitBase*) addon;
             var root = unit->RootNode;
             if (root == null) {
                 return;
@@ -507,7 +506,7 @@ namespace RoleplayersToolbox.Tools.Housing {
                 var comp = (AtkComponentNode*) prev;
                 var res = comp->Component->UldManager.RootNode->PrevSiblingNode->PrevSiblingNode->PrevSiblingNode;
                 var text = (AtkTextNode*) res->ChildNode;
-                var str = Util.ReadSeString((IntPtr) text->NodeText.StringPtr, this.Plugin.Interface.SeStringManager);
+                var str = Util.ReadSeString((IntPtr) text->NodeText.StringPtr, this.Plugin.SeStringManager);
                 HighlightIf(&text->AtkResNode, str.TextValue == world?.Name?.ToString());
             } while ((prev = prev->PrevSiblingNode) != null);
         }

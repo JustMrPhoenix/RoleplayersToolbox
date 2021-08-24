@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Numerics;
-using Dalamud.Plugin;
+using Dalamud.Logging;
 using ImGuiNET;
 
 namespace RoleplayersToolbox {
     internal class PluginUi : IDisposable {
-        internal Plugin Plugin { get; }
+        private Plugin Plugin { get; }
 
         private bool _showInterface;
 
@@ -17,16 +17,16 @@ namespace RoleplayersToolbox {
         internal PluginUi(Plugin plugin) {
             this.Plugin = plugin;
 
-            this.Plugin.Interface.UiBuilder.OnBuildUi += this.Draw;
-            this.Plugin.Interface.UiBuilder.OnOpenConfigUi += this.OpenConfig;
+            this.Plugin.Interface.UiBuilder.Draw += this.Draw;
+            this.Plugin.Interface.UiBuilder.OpenConfigUi += this.OpenConfig;
         }
 
         public void Dispose() {
-            this.Plugin.Interface.UiBuilder.OnOpenConfigUi -= this.OpenConfig;
-            this.Plugin.Interface.UiBuilder.OnBuildUi -= this.Draw;
+            this.Plugin.Interface.UiBuilder.OpenConfigUi -= this.OpenConfig;
+            this.Plugin.Interface.UiBuilder.Draw -= this.Draw;
         }
 
-        private void OpenConfig(object? sender = null, object? args = null) {
+        private void OpenConfig() {
             this.ShowInterface = true;
         }
 

@@ -1,12 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <TargetFramework>net5-windows</TargetFramework>
-        <Version>0.3.0</Version>
+        <Version>0.3.1</Version>
         <LangVersion>latest</LangVersion>
         <Nullable>enable</Nullable>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <Configurations>Release Official;Release Illegal;Debug Official;Debug Illegal</Configurations>
         <Platforms>AnyCPU</Platforms>
+        <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
+        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)' == 'Release Official' ">
         <DefineConstants>TRACE;RELEASE;</DefineConstants>
@@ -51,8 +53,8 @@
         </Reference>
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="DalamudPackager" Version="2.1.0" />
-        <PackageReference Include="F23.StringSimilarity" Version="4.1.0" />
-        <PackageReference Include="XivCommon" Version="3.0.1" />
+        <PackageReference Include="DalamudPackager" Version="2.1.2"/>
+        <PackageReference Include="F23.StringSimilarity" Version="4.1.0"/>
+        <PackageReference Include="XivCommon" Version="3.0.1"/>
     </ItemGroup>
 </Project>

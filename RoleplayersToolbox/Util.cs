@@ -38,9 +38,9 @@ namespace RoleplayersToolbox {
             }
         }
 
-        public static SeString ReadSeString(IntPtr ptr, SeStringManager manager) {
+        public static SeString ReadSeString(IntPtr ptr) {
             var bytes = ReadTerminatedBytes(ptr);
-            return manager.Parse(bytes);
+            return SeString.Parse(bytes);
         }
 
         public static string ReadString(IntPtr ptr) {

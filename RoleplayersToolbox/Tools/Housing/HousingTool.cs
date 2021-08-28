@@ -410,7 +410,7 @@ namespace RoleplayersToolbox.Tools.Housing {
                 }
 
                 var textNode = (AtkTextNode*) radioUld.NodeList[3];
-                var text = Util.ReadSeString((IntPtr) textNode->NodeText.StringPtr, this.Plugin.SeStringManager);
+                var text = Util.ReadSeString((IntPtr) textNode->NodeText.StringPtr);
                 HighlightIf(radioButton, shouldSet && text.TextValue == $"{this.Destination?.Ward}");
             } while ((radioButton = radioButton->PrevSiblingNode) != null);
         }
@@ -460,7 +460,7 @@ namespace RoleplayersToolbox.Tools.Housing {
             for (var i = 0; i < list->ListLength; i++) {
                 var item = list->ItemRendererList + i;
                 var button = item->AtkComponentListItemRenderer->AtkComponentButton;
-                var buttonText = Util.ReadSeString((IntPtr) button.ButtonTextNode->NodeText.StringPtr, this.Plugin.SeStringManager);
+                var buttonText = Util.ReadSeString((IntPtr) button.ButtonTextNode->NodeText.StringPtr);
 
                 var component = (AtkComponentBase*) item->AtkComponentListItemRenderer;
 
@@ -506,7 +506,7 @@ namespace RoleplayersToolbox.Tools.Housing {
                 var comp = (AtkComponentNode*) prev;
                 var res = comp->Component->UldManager.RootNode->PrevSiblingNode->PrevSiblingNode->PrevSiblingNode;
                 var text = (AtkTextNode*) res->ChildNode;
-                var str = Util.ReadSeString((IntPtr) text->NodeText.StringPtr, this.Plugin.SeStringManager);
+                var str = Util.ReadSeString((IntPtr) text->NodeText.StringPtr);
                 HighlightIf(&text->AtkResNode, str.TextValue == world?.Name?.ToString());
             } while ((prev = prev->PrevSiblingNode) != null);
         }

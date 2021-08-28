@@ -1,17 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Reflection;
 using Dalamud.Data;
 using Dalamud.Game;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.Command;
 using Dalamud.Game.Gui;
-using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.IoC;
-using Dalamud.Logging;
 using Dalamud.Plugin;
-using Lumina;
 using RoleplayersToolbox.Tools;
 using RoleplayersToolbox.Tools.Housing;
 using RoleplayersToolbox.Tools.Targeting;
@@ -51,12 +47,8 @@ namespace RoleplayersToolbox {
         internal ObjectTable ObjectTable { get; init; } = null!;
 
         [PluginService]
-        internal SeStringManager SeStringManager { get; init; } = null!;
-
-        [PluginService]
         internal SigScanner SigScanner { get; init; } = null!;
 
-        internal GameData? GameData { get; }
         internal Configuration Config { get; }
         internal XivCommonBase Common { get; }
         internal List<ITool> Tools { get; } = new();
@@ -64,10 +56,6 @@ namespace RoleplayersToolbox {
         private Commands Commands { get; }
 
         public Plugin() {
-            this.GameData = (GameData?) this.DataManager
-                .GetType()
-                .GetField("gameData", BindingFlags.Instance | BindingFlags.NonPublic)
-                ?.GetValue(this.DataManager);
             this.Config = this.Interface.GetPluginConfig() as Configuration ?? new Configuration();
             this.Common = new XivCommonBase(Hooks.ContextMenu | Hooks.PartyFinderListings);
 
@@ -82,10 +70,6 @@ namespace RoleplayersToolbox {
             this.Ui = new PluginUi(this);
 
             this.Commands = new Commands(this);
-
-            if (this.GameData == null) {
-                PluginLog.LogWarning("Could not find GameData - some features will be disabled");
-            }
         }
 
         public void Dispose() {

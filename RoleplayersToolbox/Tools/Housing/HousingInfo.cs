@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using Dalamud.Data;
 using Dalamud.Logging;
-using Lumina;
 using Lumina.Data.Files;
 using Lumina.Data.Parsing.Layer;
 using Lumina.Excel.GeneratedSheets;
@@ -10,13 +9,11 @@ using Lumina.Excel.GeneratedSheets;
 namespace RoleplayersToolbox.Tools.Housing {
     internal class HousingInfo {
         private DataManager Data { get; }
-        private GameData? GameData { get; }
         private Dictionary<uint, LayerCommon.InstanceObject> LgbObjects { get; } = new();
         internal HousingDistances Distances { get; }
 
         internal HousingInfo(Plugin plugin) {
             this.Data = plugin.DataManager;
-            this.GameData = plugin.GameData;
             this.Distances = this.PrecalculateClosest();
         }
 
@@ -80,12 +77,8 @@ namespace RoleplayersToolbox.Tools.Housing {
         }
 
         private LgbFile? GetLgbFromPath(string path) {
-            if (this.GameData == null) {
-                return null;
-            }
-
             try {
-                return this.GameData.GetFile<LgbFile>(path);
+                return this.Data.GameData.GetFile<LgbFile>(path);
             } catch (Exception ex) {
                 PluginLog.LogError(ex, $"Error reading lgb file: {path}");
                 return null;

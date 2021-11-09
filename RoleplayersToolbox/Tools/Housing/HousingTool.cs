@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Linq;
-using System.Numerics;
 using System.Runtime.InteropServices;
 using Dalamud.Game;
 using Dalamud.Game.Command;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using FFXIVClientStructs.FFXIV.Client.UI;
+using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using ImGuiNET;
 using Lumina.Excel.GeneratedSheets;
@@ -16,12 +16,7 @@ namespace RoleplayersToolbox.Tools.Housing {
     internal class HousingTool : BaseTool, IDisposable {
         private static class Signatures {
             internal const string AddonMapHide = "40 53 48 83 EC 30 0F B6 91 ?? ?? ?? ?? 48 8B D9 E8 ?? ?? ?? ??";
-            internal const string HousingPointer = "48 8B 05 ?? ?? ?? ?? 48 83 78 ?? ?? 74 16 48 8D 8F ?? ?? ?? ?? 66 89 5C 24 ?? 48 8D 54 24 ?? E8 ?? ?? ?? ?? 48 8B 7C 24";
         }
-
-        // Updated: 5.55
-        // 48 89 5C 24 ?? 57 48 81 EC ?? ?? ?? ?? 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 84 24 ?? ?? ?? ?? 80 3D ?? ?? ?? ?? ??
-        private const int AgentMapId = 38;
 
         // AgentMap.vf8 has this offset if the sig above doesn't work
         private const int AgentMapFlagSetOffset = 0x5997;
@@ -50,21 +45,7 @@ namespace RoleplayersToolbox.Tools.Housing {
             }
         }
 
-        // Updated: 5.55
-        // 48 89 5C 24 ?? 48 89 6C 24 ?? 48 89 74 24 ?? 57 41 56 41 57 48 83 EC 20 49 8B 00
-        private unsafe ushort? CurrentWard {
-            get {
-                var objPtr = Util.FollowPointerChain(this._housingPointer, new[] { 0, 8 });
-                if (objPtr == IntPtr.Zero) {
-                    return null;
-                }
-
-                return (ushort) (*(ushort*) (objPtr + 0x96a2) + 1);
-            }
-        }
-
         private readonly AddonMapHideDelegate? _addonMapHide;
-        private readonly IntPtr _housingPointer;
 
         internal HousingTool(Plugin plugin) {
             this.Plugin = plugin;
@@ -76,8 +57,6 @@ namespace RoleplayersToolbox.Tools.Housing {
             if (this.Plugin.SigScanner.TryScanText(Signatures.AddonMapHide, out var addonMapHidePtr)) {
                 this._addonMapHide = Marshal.GetDelegateForFunctionPointer<AddonMapHideDelegate>(addonMapHidePtr);
             }
-
-            this.Plugin.SigScanner.TryGetStaticAddressFromSig(Signatures.HousingPointer, out this._housingPointer);
 
             this.Plugin.Common.Functions.ContextMenu.OpenContextMenu += this.OnContextMenu;
             this.Plugin.Framework.Update += this.OnFramework;
@@ -137,7 +116,7 @@ namespace RoleplayersToolbox.Tools.Housing {
 
             var world = this.Destination.World;
             if (ImGui.BeginCombo("World", world?.Name?.ToString() ?? string.Empty)) {
-                var dataCentre = this.Plugin.ClientState.LocalPlayer?.HomeWorld?.GameData?.DataCenter?.Row;
+                var dataCentre = this.Plugin.ClientState.LocalPlayer?.HomeWorld.GameData.DataCenter?.Row;
 
                 foreach (var availWorld in this.Plugin.DataManager.GetExcelSheet<World>()!) {
                     if (availWorld.DataCenter.Row != dataCentre || !availWorld.IsPublic) {
@@ -189,7 +168,7 @@ namespace RoleplayersToolbox.Tools.Housing {
                 ImGui.SameLine();
 
                 var destArea = this.Destination.Area.Value;
-                if (!destArea.CanWorldTravel() && this.Destination?.World != null && this.Destination?.World != this.Plugin.ClientState.LocalPlayer?.CurrentWorld?.GameData) {
+                if (!destArea.CanWorldTravel() && this.Destination?.World != null && this.Destination?.World != this.Plugin.ClientState.LocalPlayer?.CurrentWorld.GameData) {
                     destArea = HousingArea.Mist;
                 }
 
@@ -289,16 +268,15 @@ namespace RoleplayersToolbox.Tools.Housing {
                 return;
             }
 
+            var loc = this.Plugin.Common.Functions.Housing.Location;
+
             // ensure in correct ward
-            if (this.CurrentWard != destination.Ward) {
+            if (loc?.Ward != destination.Ward) {
                 return;
             }
 
-            var localPos = player.Position;
-            var localPosCorrected = new Vector3(localPos.X, localPos.Z, localPos.Y);
-            var distance = Util.DistanceBetween(localPosCorrected, new Vector3(info.X, info.Y, info.Z));
-
-            if (distance >= 15) {
+            // ensure either in the yard of the destination plot or actually inside the destination
+            if (loc?.Yard != destination.Plot && loc?.Plot != destination.Plot) {
                 return;
             }
 
@@ -319,7 +297,7 @@ namespace RoleplayersToolbox.Tools.Housing {
         }
 
         private unsafe void ClearFlag() {
-            var mapAgent = this.Plugin.Common.Functions.GetAgentByInternalId(AgentMapId);
+            var mapAgent = (IntPtr) this.Plugin.Common.Functions.GetFramework()->GetUiModule()->GetAgentModule()->GetAgentByInternalId(AgentId.Map);
             if (mapAgent != IntPtr.Zero) {
                 *(byte*) (mapAgent + AgentMapFlagSetOffset) = 0;
             }
@@ -433,14 +411,15 @@ namespace RoleplayersToolbox.Tools.Housing {
         private bool ShouldHighlight(SeString str) {
             var text = str.TextValue;
 
-            var sameWorld = this.Destination?.World == this.Plugin.ClientState.LocalPlayer?.CurrentWorld?.GameData;
+            var sameWorld = this.Destination?.World == this.Plugin.ClientState.LocalPlayer?.CurrentWorld.GameData;
             if (!sameWorld && this.Destination?.World != null) {
                 return text == " Visit Another World Server.";
             }
 
             // TODO: figure out how to use HousingAethernet.Order with current one missing
             var placeName = this.Destination?.ClosestAethernet?.PlaceName?.Value?.Name?.ToString();
-            if (this.CurrentWard == this.Destination?.Ward && placeName != null && text.StartsWith(placeName) && text.Length == placeName.Length + 1) {
+            var currentWard = this.Plugin.Common.Functions.Housing.Location?.Ward;
+            if (currentWard == this.Destination?.Ward && placeName != null && text.StartsWith(placeName) && text.Length == placeName.Length + 1) {
                 return true;
             }
 

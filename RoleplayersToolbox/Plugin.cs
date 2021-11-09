@@ -20,7 +20,11 @@ using RoleplayersToolbox.Tools.Illegal.EmoteSnap;
 
 namespace RoleplayersToolbox {
     internal class Plugin : IDalamudPlugin {
+        #if DEBUG
+        public string Name => "The Roleplayer's Toolbox (Debug)";
+        #else
         public string Name => "The Roleplayer's Toolbox";
+        #endif
 
         [PluginService]
         internal DalamudPluginInterface Interface { get; init; } = null!;

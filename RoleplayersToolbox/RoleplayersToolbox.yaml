@@ -11,4 +11,4 @@ description: |-
   - Add the /emoteid command to use any emote by its ID.
   - Disable the /doze emote snap so you can use the sleep emote
     anywhere.
-repo_url: https://git.sr.ht/~jkcclemens/RoleplayersToolbox
+repo_url: https://git.annaclemens.io/ascclemens/RoleplayersToolbox

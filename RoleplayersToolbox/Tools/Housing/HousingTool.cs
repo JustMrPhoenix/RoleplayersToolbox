@@ -240,6 +240,7 @@ namespace RoleplayersToolbox.Tools.Housing {
             this.HighlightSelectString();
             this.HighlightResidentialTeleport();
             this.HighlightWorldTravel();
+            this.HighlightTeleportTown();
         }
 
         private void ClearIfNear() {
@@ -297,7 +298,7 @@ namespace RoleplayersToolbox.Tools.Housing {
         }
 
         private unsafe void ClearFlag() {
-            var mapAgent = (IntPtr) this.Plugin.Common.Functions.GetFramework()->GetUiModule()->GetAgentModule()->GetAgentByInternalId(AgentId.Map);
+            var mapAgent = (IntPtr) FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance()->GetUiModule()->GetAgentModule()->GetAgentByInternalId(AgentId.Map);
             if (mapAgent != IntPtr.Zero) {
                 *(byte*) (mapAgent + AgentMapFlagSetOffset) = 0;
             }
@@ -400,7 +401,7 @@ namespace RoleplayersToolbox.Tools.Housing {
             }
 
             var select = (AddonSelectString*) addon;
-            var list = select->PopupMenu.List;
+            var list = select->PopupMenu.PopupMenu.List;
             if (list == null) {
                 return;
             }
@@ -414,13 +415,6 @@ namespace RoleplayersToolbox.Tools.Housing {
             var sameWorld = this.Destination?.World == this.Plugin.ClientState.LocalPlayer?.CurrentWorld.GameData;
             if (!sameWorld && this.Destination?.World != null) {
                 return text == " Visit Another World Server.";
-            }
-
-            // TODO: figure out how to use HousingAethernet.Order with current one missing
-            var placeName = this.Destination?.ClosestAethernet?.PlaceName?.Value?.Name?.ToString();
-            var currentWard = this.Plugin.Common.Functions.Housing.Location?.Ward;
-            if (currentWard == this.Destination?.Ward && placeName != null && text.StartsWith(placeName) && text.Length == placeName.Length + 1) {
-                return true;
             }
 
             // ReSharper disable once InvertIf
@@ -444,6 +438,54 @@ namespace RoleplayersToolbox.Tools.Housing {
                 var component = (AtkComponentBase*) item->AtkComponentListItemRenderer;
 
                 HighlightIf(&component->OwnerNode->AtkResNode, this.ShouldHighlight(buttonText));
+            }
+        }
+
+        private unsafe void HighlightTeleportTown() {
+            var player = this.Plugin.ClientState.LocalPlayer;
+            if (player == null) {
+                return;
+            }
+
+            var world = this.Destination?.World;
+            if (world?.RowId != player.CurrentWorld.Id) {
+                return;
+            }
+
+            var addon = this.Plugin.GameGui.GetAddonByName("TelepotTown", 1);
+            if (addon == IntPtr.Zero) {
+                return;
+            }
+
+            var unit = (AtkUnitBase*) addon;
+            var root = unit->RootNode;
+            if (root == null) {
+                return;
+            }
+
+            var windowNode = root->ChildNode;
+            var list = windowNode->PrevSiblingNode->PrevSiblingNode;
+            var treeNode = (AtkComponentNode*) list->ChildNode;
+            var collisionNode = treeNode->Component->UldManager.RootNode;
+
+            var child = collisionNode->PrevSiblingNode;
+            while (child != null) {
+                var component = (AtkComponentNode*) child;
+                if (child->Type != (NodeType) 1020 || component->Component->UldManager.NodeListSize != 7) {
+                    goto End;
+                }
+
+                var childCollisionNode = component->Component->UldManager.RootNode;
+                var textNode = (AtkTextNode*) childCollisionNode->PrevSiblingNode->PrevSiblingNode->PrevSiblingNode;
+                var text = textNode->NodeText.ToString();
+
+                var placeName = this.Destination?.ClosestAethernet?.PlaceName?.Value?.Name?.ToString();
+                var currentWard = this.Plugin.Common.Functions.Housing.Location?.Ward;
+
+                HighlightIf(&textNode->AtkResNode, currentWard == this.Destination?.Ward && placeName != null && text == placeName);
+
+                End:
+                child = child->PrevSiblingNode;
             }
         }
 

@@ -11,6 +11,9 @@ namespace RoleplayersToolbox.Tools.Housing {
                 [44] = 1966110, // Lavender South Subdivision
                 [45] = 1966110,
             },
+            [HousingArea.Goblet] = new() {
+                [4] = 1966113, // Goblet Exchange
+            },
             [HousingArea.Shirogane] = new() {
                 [5] = 1966135, // Southern Shirogane
             },

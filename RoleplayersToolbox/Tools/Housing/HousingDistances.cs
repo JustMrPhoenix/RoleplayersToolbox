@@ -14,6 +14,9 @@ namespace RoleplayersToolbox.Tools.Housing {
             [HousingArea.Goblet] = new() {
                 [4] = 1966113, // Goblet Exchange
             },
+            [HousingArea.Mist] = new() {
+                [46] = 1966095, // Central Mist Subdivision
+            },
             [HousingArea.Shirogane] = new() {
                 [5] = 1966135, // Southern Shirogane
             },

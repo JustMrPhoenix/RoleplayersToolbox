@@ -3,6 +3,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using Dalamud.Game;
 using Dalamud.Game.Command;
+using Dalamud.Game.Gui.ContextMenus;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using FFXIVClientStructs.FFXIV.Client.UI;
@@ -10,7 +11,6 @@ using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using ImGuiNET;
 using Lumina.Excel.GeneratedSheets;
-using XivCommon.Functions.ContextMenu;
 
 namespace RoleplayersToolbox.Tools.Housing {
     internal class HousingTool : BaseTool, IDisposable {
@@ -58,7 +58,7 @@ namespace RoleplayersToolbox.Tools.Housing {
                 this._addonMapHide = Marshal.GetDelegateForFunctionPointer<AddonMapHideDelegate>(addonMapHidePtr);
             }
 
-            this.Plugin.Common.Functions.ContextMenu.OpenContextMenu += this.OnContextMenu;
+            this.Plugin.ContextMenu.ContextMenuOpened += this.OnContextMenu;
             this.Plugin.Framework.Update += this.OnFramework;
             this.Plugin.CommandManager.AddHandler("/route", new CommandInfo(this.OnRouteCommand) {
                 HelpMessage = "Extract housing information from the given text and open the routing window",
@@ -72,7 +72,7 @@ namespace RoleplayersToolbox.Tools.Housing {
             this.Plugin.CommandManager.RemoveHandler("/bookmarks");
             this.Plugin.CommandManager.RemoveHandler("/route");
             this.Plugin.Framework.Update -= this.OnFramework;
-            this.Plugin.Common.Functions.ContextMenu.OpenContextMenu -= this.OnContextMenu;
+            this.Plugin.ContextMenu.ContextMenuOpened -= this.OnContextMenu;
         }
 
         public override void DrawSettings(ref bool anyChanged) {
@@ -198,19 +198,26 @@ namespace RoleplayersToolbox.Tools.Housing {
             this.BookmarksUi.ShouldDraw ^= true;
         }
 
-        private void OnContextMenu(ContextMenuOpenArgs args) {
-            if (args.ParentAddonName != "LookingForGroup" || args.ContentIdLower == 0) {
+        private void OnContextMenu(ContextMenuOpenedArgs args) {
+            if (args.ParentAddonName != "LookingForGroup" || args.GameObjectContext?.ContentId is null or 0) {
                 return;
             }
 
-            args.Items.Add(new NormalContextSubMenuItem("Roleplayer's Toolbox", args => {
-                args.Items.Add(new NormalContextMenuItem("Select as Destination", this.SelectDestination));
-                args.Items.Add(new NormalContextMenuItem("Add Bookmark", this.AddBookmark));
-            }));
+            args.AddCustomSubMenu("Roleplayer's Toolbox", args => {
+                args.AddCustomItem("Select as Destination", this.SelectDestination);
+                args.AddCustomItem("Add Bookmark", this.AddBookmark);
+            });
         }
 
-        private void SelectDestination(ContextMenuItemSelectedArgs args) {
-            var listing = this.Plugin.Common.Functions.PartyFinder.CurrentListings.Values.FirstOrDefault(listing => listing.ContentIdLower == args.ContentIdLower);
+        private void SelectDestination(CustomContextMenuItemSelectedArgs args) {
+            var contentId = args.ContextMenuOpenedArgs.GameObjectContext?.ContentId;
+            if (contentId is null or 0) {
+                return;
+            }
+            
+            var contentIdLower = contentId & 0xFFFFFFFF;
+
+            var listing = this.Plugin.Common.Functions.PartyFinder.CurrentListings.Values.FirstOrDefault(listing => listing.ContentIdLower == contentIdLower);
             if (listing == null) {
                 return;
             }
@@ -219,8 +226,15 @@ namespace RoleplayersToolbox.Tools.Housing {
             this.Destination = InfoExtractor.Extract(listing.Description.TextValue, listing.World.Value.DataCenter.Row, this.Plugin.DataManager, this.Info);
         }
 
-        private void AddBookmark(ContextMenuItemSelectedArgs args) {
-            var listing = this.Plugin.Common.Functions.PartyFinder.CurrentListings.Values.FirstOrDefault(listing => listing.ContentIdLower == args.ContentIdLower);
+        private void AddBookmark(CustomContextMenuItemSelectedArgs args) {
+            var contentId = args.ContextMenuOpenedArgs.GameObjectContext?.ContentId;
+            if (contentId is null or 0) {
+                return;
+            }
+            
+            var contentIdLower = contentId & 0xFFFFFFFF;
+            
+            var listing = this.Plugin.Common.Functions.PartyFinder.CurrentListings.Values.FirstOrDefault(listing => listing.ContentIdLower == contentIdLower);
             if (listing == null) {
                 return;
             }

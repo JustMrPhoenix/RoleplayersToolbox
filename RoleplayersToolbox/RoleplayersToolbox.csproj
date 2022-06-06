@@ -53,8 +53,8 @@
         </Reference>
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="DalamudPackager" Version="2.1.5"/>
-        <PackageReference Include="F23.StringSimilarity" Version="4.1.0"/>
-        <PackageReference Include="XivCommon" Version="4.0.0-alpha.2"/>
+        <PackageReference Include="DalamudPackager" Version="2.1.7"/>
+        <PackageReference Include="F23.StringSimilarity" Version="5.0.0"/>
+        <PackageReference Include="XivCommon" Version="5.0.1-alpha.1"/>
     </ItemGroup>
 </Project>

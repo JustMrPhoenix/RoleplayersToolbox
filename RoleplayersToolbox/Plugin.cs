@@ -6,6 +6,7 @@ using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.Command;
 using Dalamud.Game.Gui;
+using Dalamud.Game.Gui.ContextMenus;
 using Dalamud.IoC;
 using Dalamud.Plugin;
 using RoleplayersToolbox.Tools;
@@ -37,6 +38,9 @@ namespace RoleplayersToolbox {
 
         [PluginService]
         internal CommandManager CommandManager { get; init; } = null!;
+        
+        [PluginService]
+        internal ContextMenu ContextMenu { get; init; } = null!;
 
         [PluginService]
         internal DataManager DataManager { get; init; } = null!;
@@ -61,7 +65,7 @@ namespace RoleplayersToolbox {
 
         public Plugin() {
             this.Config = this.Interface.GetPluginConfig() as Configuration ?? new Configuration();
-            this.Common = new XivCommonBase(Hooks.ContextMenu | Hooks.PartyFinderListings);
+            this.Common = new XivCommonBase(Hooks.PartyFinderListings);
 
             this.Tools.Add(new HousingTool(this));
             this.Tools.Add(new TargetingTool(this));

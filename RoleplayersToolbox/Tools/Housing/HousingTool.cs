@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Linq;
 using System.Runtime.InteropServices;
+using Dalamud.ContextMenu;
 using Dalamud.Game;
 using Dalamud.Game.Command;
-using Dalamud.Game.Gui.ContextMenus;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using FFXIVClientStructs.FFXIV.Client.UI;
@@ -58,7 +58,7 @@ namespace RoleplayersToolbox.Tools.Housing {
                 this._addonMapHide = Marshal.GetDelegateForFunctionPointer<AddonMapHideDelegate>(addonMapHidePtr);
             }
 
-            this.Plugin.ContextMenu.ContextMenuOpened += this.OnContextMenu;
+            this.Plugin.ContextMenu.OnOpenGameObjectContextMenu += this.OnContextMenu;
             this.Plugin.Framework.Update += this.OnFramework;
             this.Plugin.CommandManager.AddHandler("/route", new CommandInfo(this.OnRouteCommand) {
                 HelpMessage = "Extract housing information from the given text and open the routing window",
@@ -72,7 +72,7 @@ namespace RoleplayersToolbox.Tools.Housing {
             this.Plugin.CommandManager.RemoveHandler("/bookmarks");
             this.Plugin.CommandManager.RemoveHandler("/route");
             this.Plugin.Framework.Update -= this.OnFramework;
-            this.Plugin.ContextMenu.ContextMenuOpened -= this.OnContextMenu;
+            this.Plugin.ContextMenu.OnOpenGameObjectContextMenu -= this.OnContextMenu;
         }
 
         public override void DrawSettings(ref bool anyChanged) {
@@ -198,20 +198,18 @@ namespace RoleplayersToolbox.Tools.Housing {
             this.BookmarksUi.ShouldDraw ^= true;
         }
 
-        private void OnContextMenu(ContextMenuOpenedArgs args) {
-            if (args.ParentAddonName != "LookingForGroup" || args.GameObjectContext?.ContentId is null or 0) {
+        private void OnContextMenu(GameObjectContextMenuOpenArgs args) {
+            if (args.ParentAddonName != "LookingForGroup" || args.ContentIdLower is 0) {
                 return;
             }
 
-            args.AddCustomSubMenu("Roleplayer's Toolbox", args => {
-                args.AddCustomItem("Select as Destination", this.SelectDestination);
-                args.AddCustomItem("Add Bookmark", this.AddBookmark);
-            });
+            args.AddCustomItem(new GameObjectContextMenuItem("Select as Destination", this.SelectDestination));
+            args.AddCustomItem(new GameObjectContextMenuItem("Add Bookmark", this.AddBookmark));
         }
 
-        private void SelectDestination(CustomContextMenuItemSelectedArgs args) {
-            var contentId = args.ContextMenuOpenedArgs.GameObjectContext?.ContentId;
-            if (contentId is null or 0) {
+        private void SelectDestination(GameObjectContextMenuItemSelectedArgs args) {
+            var contentId = args.ContentIdLower;
+            if (contentId is 0) {
                 return;
             }
             
@@ -226,9 +224,9 @@ namespace RoleplayersToolbox.Tools.Housing {
             this.Destination = InfoExtractor.Extract(listing.Description.TextValue, listing.World.Value.DataCenter.Row, this.Plugin.DataManager, this.Info);
         }
 
-        private void AddBookmark(CustomContextMenuItemSelectedArgs args) {
-            var contentId = args.ContextMenuOpenedArgs.GameObjectContext?.ContentId;
-            if (contentId is null or 0) {
+        private void AddBookmark(GameObjectContextMenuItemSelectedArgs args) {
+            var contentId = args.ContentIdLower;
+            if (contentId is 0) {
                 return;
             }
             

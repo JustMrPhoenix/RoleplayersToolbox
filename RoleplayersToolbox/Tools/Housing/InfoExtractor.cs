@@ -27,6 +27,11 @@ namespace RoleplayersToolbox.Tools.Housing {
                 new Regex(@"\bshirogane\b", RegexOptions.Compiled | RegexOptions.IgnoreCase),
                 new Regex(@"\bshiro\b", RegexOptions.Compiled | RegexOptions.IgnoreCase),
             },
+            [HousingArea.Empyreum] = new[] {
+                new Regex(@"\bemp[ye]r[ie]um\b", RegexOptions.Compiled | RegexOptions.IgnoreCase),
+                new Regex(@"\bempy\b", RegexOptions.Compiled | RegexOptions.IgnoreCase),
+                new Regex(@"\bemp\b", RegexOptions.Compiled | RegexOptions.IgnoreCase),
+            },
         };
 
         private static readonly JaroWinkler JaroWinkler = new();

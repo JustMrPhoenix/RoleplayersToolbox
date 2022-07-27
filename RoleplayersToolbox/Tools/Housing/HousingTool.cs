@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Dalamud.ContextMenu;
@@ -47,12 +48,23 @@ namespace RoleplayersToolbox.Tools.Housing {
 
         private readonly AddonMapHideDelegate? _addonMapHide;
 
+        private readonly List<(string, List<World>)> _worlds = new();
+
         internal HousingTool(Plugin plugin) {
             this.Plugin = plugin;
             this.Config = plugin.Config.Tools.Housing;
             this.Info = new HousingInfo(plugin);
             this.BookmarksUi = new BookmarksUi(plugin, this, this.Config);
             this.Teleport = new Teleport(plugin);
+
+            this._worlds = this.Plugin.DataManager.GetExcelSheet<World>()!
+                .Where(row => row.IsPublic)
+                .GroupBy(row => row.DataCenter.Value!)
+                .Where(grouping => grouping.Key.Region != 0)
+                .OrderBy(grouping => grouping.Key.Region)
+                .ThenBy(grouping => grouping.Key.Name.RawString)
+                .Select(grouping => (grouping.Key.Name.RawString, grouping.OrderBy(row => row.Name.RawString).ToList()))
+                .ToList();
 
             if (this.Plugin.SigScanner.TryScanText(Signatures.AddonMapHide, out var addonMapHidePtr)) {
                 this._addonMapHide = Marshal.GetDelegateForFunctionPointer<AddonMapHideDelegate>(addonMapHidePtr);
@@ -116,19 +128,34 @@ namespace RoleplayersToolbox.Tools.Housing {
 
             var world = this.Destination.World;
             if (ImGui.BeginCombo("World", world?.Name?.ToString() ?? string.Empty)) {
-                var dataCentre = this.Plugin.ClientState.LocalPlayer?.HomeWorld.GameData.DataCenter?.Row;
+                var currentDc = this.Plugin.ClientState.LocalPlayer?.CurrentWorld.GameData?.DataCenter?.Value?.Name?.RawString;
 
-                foreach (var availWorld in this.Plugin.DataManager.GetExcelSheet<World>()!) {
-                    if (availWorld.DataCenter.Row != dataCentre || !availWorld.IsPublic) {
-                        continue;
+                foreach (var (dc, worlds) in this._worlds) {
+                    if (ImGui.IsWindowAppearing() && world == null && dc == currentDc) {
+                        ImGui.SetScrollHereY(0.5f);
                     }
 
-                    if (!ImGui.Selectable(availWorld.Name.ToString())) {
-                        continue;
+                    ImGui.PushStyleColor(ImGuiCol.Text, ImGui.GetStyle().Colors[(int) ImGuiCol.TextDisabled]);
+                    ImGui.TextUnformatted(dc);
+                    ImGui.PopStyleColor();
+                    ImGui.Separator();
+
+                    foreach (var availWorld in worlds) {
+                        var isSelected = world?.RowId == availWorld.RowId;
+
+                        if (ImGui.IsWindowAppearing() && isSelected) {
+                            ImGui.SetScrollHereY(0.5f);
+                        }
+
+                        if (!ImGui.Selectable(availWorld.Name.RawString, isSelected)) {
+                            continue;
+                        }
+
+                        this.Destination.World = availWorld;
+                        anyChanged = true;
                     }
 
-                    this.Destination.World = availWorld;
-                    anyChanged = true;
+                    ImGui.Spacing();
                 }
 
                 ImGui.EndCombo();
@@ -212,7 +239,7 @@ namespace RoleplayersToolbox.Tools.Housing {
             if (contentId is 0) {
                 return;
             }
-            
+
             var contentIdLower = contentId & 0xFFFFFFFF;
 
             var listing = this.Plugin.Common.Functions.PartyFinder.CurrentListings.Values.FirstOrDefault(listing => listing.ContentIdLower == contentIdLower);
@@ -229,9 +256,9 @@ namespace RoleplayersToolbox.Tools.Housing {
             if (contentId is 0) {
                 return;
             }
-            
+
             var contentIdLower = contentId & 0xFFFFFFFF;
-            
+
             var listing = this.Plugin.Common.Functions.PartyFinder.CurrentListings.Values.FirstOrDefault(listing => listing.ContentIdLower == contentIdLower);
             if (listing == null) {
                 return;

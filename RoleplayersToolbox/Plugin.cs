@@ -13,6 +13,7 @@ using RoleplayersToolbox.Tools;
 using RoleplayersToolbox.Tools.Housing;
 using RoleplayersToolbox.Tools.Targeting;
 using XivCommon;
+using Dalamud.Game.Gui.Dtr;
 #if ILLEGAL
 using RoleplayersToolbox.Tools.Illegal.Emote;
 using RoleplayersToolbox.Tools.Illegal.EmoteSnap;
@@ -27,16 +28,12 @@ namespace RoleplayersToolbox {
         public string Name => "The Roleplayer's Toolbox";
         #endif
 
-        [PluginService]
-        internal DalamudPluginInterface Interface { get; init; } = null!;
+        public DalamudPluginInterface PluginInterface { get; private set; } = null!;
 
-        [PluginService]
         internal ChatGui ChatGui { get; init; } = null!;
 
-        [PluginService]
         internal ClientState ClientState { get; init; } = null!;
 
-        [PluginService]
         internal CommandManager CommandManager { get; init; } = null!;
 
         // [PluginService]
@@ -44,19 +41,14 @@ namespace RoleplayersToolbox {
 
         internal DalamudContextMenu ContextMenu { get; }
 
-        [PluginService]
         internal DataManager DataManager { get; init; } = null!;
 
-        [PluginService]
         internal Framework Framework { get; init; } = null!;
 
-        [PluginService]
         internal GameGui GameGui { get; init; } = null!;
 
-        [PluginService]
         internal ObjectTable ObjectTable { get; init; } = null!;
 
-        [PluginService]
         internal SigScanner SigScanner { get; init; } = null!;
 
         internal Configuration Config { get; }
@@ -65,8 +57,30 @@ namespace RoleplayersToolbox {
         internal PluginUi Ui { get; }
         private Commands Commands { get; }
 
-        public Plugin() {
-            this.Config = this.Interface.GetPluginConfig() as Configuration ?? new Configuration();
+        public Plugin(
+            [RequiredVersion("1.0")] DalamudPluginInterface pluginInterface,
+            [RequiredVersion("1.0")] ChatGui chatGui,
+            [RequiredVersion("1.0")] CommandManager commands,
+            [RequiredVersion("1.0")] ClientState clientState,
+            [RequiredVersion("1.0")] DataManager dataManager,
+            [RequiredVersion("1.0")] SigScanner sigScanner,
+            [RequiredVersion("1.0")] Framework framework,
+            [RequiredVersion("1.0")] GameGui gameGui,
+            [RequiredVersion("1.0")] ObjectTable objectTable)
+        {
+            this.PluginInterface = pluginInterface;
+            this.ChatGui = chatGui;
+            this.CommandManager = commands;
+            this.ClientState = clientState;
+            this.DataManager = dataManager;
+            this.SigScanner = sigScanner;
+            this.Framework = framework;
+            this.GameGui = gameGui;
+            this.ObjectTable = objectTable;
+
+            Dalamud.Logging.PluginLog.Information("sas");
+            Dalamud.Logging.PluginLog.Information("this.Interface - " + this.PluginInterface.GetHashCode());
+            this.Config = this.PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
             this.Common = new XivCommonBase(Hooks.PartyFinderListings);
 
             this.ContextMenu = new DalamudContextMenu();
@@ -100,7 +114,7 @@ namespace RoleplayersToolbox {
         }
 
         internal void SaveConfig() {
-            this.Interface.SavePluginConfig(this.Config);
+            this.PluginInterface .SavePluginConfig(this.Config);
         }
     }
 }

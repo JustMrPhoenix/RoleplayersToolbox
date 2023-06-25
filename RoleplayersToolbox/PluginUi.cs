@@ -17,13 +17,13 @@ namespace RoleplayersToolbox {
         internal PluginUi(Plugin plugin) {
             this.Plugin = plugin;
 
-            this.Plugin.Interface.UiBuilder.Draw += this.Draw;
-            this.Plugin.Interface.UiBuilder.OpenConfigUi += this.OpenConfig;
+            this.Plugin.PluginInterface.UiBuilder.Draw += this.Draw;
+            this.Plugin.PluginInterface.UiBuilder.OpenConfigUi += this.OpenConfig;
         }
 
         public void Dispose() {
-            this.Plugin.Interface.UiBuilder.OpenConfigUi -= this.OpenConfig;
-            this.Plugin.Interface.UiBuilder.Draw -= this.Draw;
+            this.Plugin.PluginInterface.UiBuilder.OpenConfigUi -= this.OpenConfig;
+            this.Plugin.PluginInterface.UiBuilder.Draw -= this.Draw;
         }
 
         private void OpenConfig() {

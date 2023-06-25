@@ -1,5 +1,5 @@
 name: The Roleplayer's Toolbox
-author: ascclemens
+author: ascclemens (and Halua)
 punchline: "The Roleplayer's Toolbox"
 description: |-
   A collection of useful tools for roleplayers.
@@ -11,5 +11,7 @@ description: |-
   - Set any emote on your hotbar, such as sleep or object sit.
   - Add the /emoteid command to use any emote by its ID.
   - Disable the /doze emote snap so you can use the sleep emote
-    anywhere.
-repo_url: https://git.annaclemens.io/ascclemens/RoleplayersToolbox
+    anywhere. (BETA)
+  - Was ported to lastest Dalamud version by JustMrPhoenix (aka Halua)
+    I do not claim to own any of the code or implement any of the featues aside from updated /dozesnap.
+repo_url: https://github.com/JustMrPhoenix/RoleplayersToolbox

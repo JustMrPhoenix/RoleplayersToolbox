@@ -8,7 +8,7 @@ using ImGuiNET;
 namespace RoleplayersToolbox.Tools.Illegal.EmoteSnap {
     internal class EmoteSnapTool : BaseTool, IDisposable {
         private static class Signatures {
-            internal const string ShouldSnap = "E8 ?? ?? ?? ?? 84 C0 74 46 4C 8D 6D C7";
+            internal const string ShouldSnap = "E8 ?? ?? ?? ?? 84 C0 74 55 40 84 FF";// "E8 ?? ?? ?? ?? 84 C0 74 46 4C 8D 6D C7";
         }
 
         private delegate byte ShouldSnapDelegate(IntPtr a1, IntPtr a2);
@@ -43,6 +43,7 @@ namespace RoleplayersToolbox.Tools.Illegal.EmoteSnap {
 
             ImGui.TextUnformatted("Check this box to prevent /doze and the sleep emote from snapping. In order to use the sleep emote, you need to have it on your bar.");
             ImGui.TextUnformatted("The /dozesnap command can be used to toggle this.");
+            ImGui.TextColored(new System.Numerics.Vector4(255,0,0,255), "WARNING! You will NOT be able to move if you turn this on. This is a temporary fix while I look for a better snap solution");
         }
 
         private byte ShouldSnapDetour(IntPtr a1, IntPtr a2) {

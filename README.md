@@ -1,6 +1,8 @@
 # The Roleplayer's Toolbox
 
+modified by Halua
+
 ## Install
 
-- Add `https://plugins.annaclemens.io/unofficial` to your custom repositories.
+- Add `https://raw.githubusercontent.com/JustMrPhoenix/RoleplayersToolbox/main/repo.json` to your custom repositories.
 - Install via `/xlplugins`.

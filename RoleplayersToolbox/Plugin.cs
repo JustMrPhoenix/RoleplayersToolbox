@@ -78,8 +78,8 @@ namespace RoleplayersToolbox {
             this.GameGui = gameGui;
             this.ObjectTable = objectTable;
 
-            Dalamud.Logging.PluginLog.Information("sas");
-            Dalamud.Logging.PluginLog.Information("this.Interface - " + this.PluginInterface.GetHashCode());
+            // Dalamud.Logging.PluginLog.Information("sas");
+            // Dalamud.Logging.PluginLog.Information("this.Interface - " + this.PluginInterface.GetHashCode());
             this.Config = this.PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
             this.Common = new XivCommonBase(Hooks.PartyFinderListings);
 

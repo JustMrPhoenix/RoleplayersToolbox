@@ -6,6 +6,6 @@
                          OutputPath="$(OutputPath)"
                          AssemblyName="$(AssemblyName)"
                          VersionComponents="3"
-                         MakeZip="true" />
+                         MakeZip="true"/>
     </Target>
 </Project>

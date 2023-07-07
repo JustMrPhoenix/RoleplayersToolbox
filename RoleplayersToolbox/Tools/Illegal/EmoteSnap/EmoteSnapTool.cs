@@ -21,7 +21,7 @@ namespace RoleplayersToolbox.Tools.Illegal.EmoteSnap {
         private EmoteSnapConfig Config { get; }
         private Hook<ShouldSnapDelegate>? ShouldSnapHook { get; }
 
-        private unsafe Character* Character { get; }
+        private unsafe Character* Character { set; get; }
 
         internal unsafe EmoteSnapTool(Plugin plugin) {
             this.Plugin = plugin;
@@ -38,8 +38,6 @@ namespace RoleplayersToolbox.Tools.Illegal.EmoteSnap {
 
             Character* character = (Character*)(this.Plugin.ClientState.LocalPlayer?.Address ?? (nint)0);
             this.Character = character;
-            // Dalamud.Logging.PluginLog.Information("Char - " + (this.Plugin.ClientState.LocalPlayer?.Address ?? (nint)0));
-            // Dalamud.Logging.PluginLog.Information("CharMode - " + this.Character->Mode);
         }
 
         public void Dispose() {
@@ -57,19 +55,18 @@ namespace RoleplayersToolbox.Tools.Illegal.EmoteSnap {
 
         private unsafe byte ShouldSnapDetour(IntPtr a1, byte a2, byte a3)
         {
-            if (a3 != 0)
-            {
-                // Dalamud.Logging.PluginLog.Information("a1 - " + a1 + " - a2 - " + a2 + " - a3 - " + a3);
-            }
             if (!this.Config.DisableDozeSnap || a1 != (nint)this.Character || a2 == 0 || this.Character->Mode == FFXIVClientStructs.FFXIV.Client.Game.Character.Character.CharacterModes.InPositionLoop) return this.ShouldSnapHook!.Original(a1, a2, a3);
             return (byte)0;
         }
 
-        private void OnCommand(string command, string arguments) {
+        private unsafe void OnCommand(string command, string arguments) {
             this.Config.DisableDozeSnap ^= true;
 
             var status = this.Config.DisableDozeSnap ? "off" : "on";
             this.Plugin.ChatGui.Print($"/doze snap toggled {status}.");
+
+            Character* character = (Character*)(this.Plugin.ClientState.LocalPlayer?.Address ?? (nint)0);
+            this.Character = character;
         }
     }
 }
